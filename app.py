@@ -1,5 +1,5 @@
-from os import truncate
-from flask import Flask, url_for , request
+from flask import Flask, url_for , request , render_template , session
+from flask.wrappers import Request
 from flaskext.mysql import MySQL
 
 app = Flask(__name__)
@@ -18,9 +18,10 @@ mysql.init_app(app)
 def index():
     return "<p>Hola >:3 bruh! xd  !</p>"
 
-@app.route('/menu/')
-def menu():
-    return "bienvenido al menu"
+@app.route('/login' , methods = ['GET', 'POST'])   
+def login():
+    return render_template('base.html')
+
     
 @app.route('/mostrar/ordenes/')
 def ordenes():
@@ -39,11 +40,10 @@ def variable(dato):
     return f"hola, el dato es: {dato}"
 
 
-'''with app.test_request_context():
-    print(url_for('index'))
-    print(url_for('menu'))
+with app.test_request_context():
+
     print(url_for('ordenes'))
-    print(url_for('variable' , dato = 'huber ticona' )) '''
+    print(url_for('variable' , dato = 'huber ticona' ))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0' ,port=5000, debug=True )

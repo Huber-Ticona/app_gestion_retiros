@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <!-- JQUERY -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- BOOTSTRAP
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+    -->
+
+    <!-- Font Awesome JS -->
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous"/>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
+
+    <title>Inicio</title>
+
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="#" style="font-size: 25px; font-family:'Times New Roman', Times, serif ; color: #90919e"><img src="{{ url_for('static', filename='enco_logov3.png') }}" width="120px" height="50px"> RETIROS</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+          <ul class="navbar-nav mr-auto">
+            
+            <a class="nav-item nav-link active" href="#"><i class="fas fa-home"></i> Inicio <span class="sr-only">(current)</span></a>
+            <a class="nav-item nav-link" href="#"><i class="fas fa-book-open"></i> Panel Clasico</a>
+            <a class="nav-item nav-link" href="#"><i class="fas fa-chart-line"></i> Informes</a>
+    
+            
+            <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-scroll"></i> Documentos
+            </a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href="#">Ordenes de trabajo</a>
+                <a class="dropdown-item" href="#">Boletas</a>
+                <a class="dropdown-item" href="#">Facturas</a>
+                <a class="dropdown-item" href="#">Notas de credito</a>
+
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="#" id="no_tocar">No tocar</a>
+            </div>
+            </li>
+    
+          </ul>
+          <ul class="navbar-nav ml-auto">
+              <a class="nav-item nav-link " href="/"><i class="fas fa-door-open"></i> Cerrar Sesión</a>
+          </ul>
+        </div>
+      </nav>
+
+</body>
+</html>
