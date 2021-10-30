@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block encabezado %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='panel_clasico.css') }}">
+{% endblock %}
+
+{% block contenido %}
+<p>panel clasico</p>
+<div class="container">
+    <div class="row justify-content-md-center">
+        <div class="col-sm">
+            <p>BOLETAS</p>
+
+            <table class="table">
+                <tbody>
+                {% for i in range(3): %}
+                  <tr>
+                    <td><button class="btn btn-secondary">10851</button><span>ord</span></td>
+                    <td><button class="btn btn-secondary">10851</button><span class='badge badge-primary badge-pill float-right'>1</span><span class='badge badge-secondary badge-pill float-right'>1</span></td>
+                    <td><button class="btn btn-secondary">10851</button></td>
+                  </tr>
+                {% endfor %}
+                  
+                </tbody>
+              </table>
+        </div>
+        <div class="col-sm">
+            <P>FACTURAS</P>
+        </div>
+        <div class="col-sm">
+            <p>GUÍAS</p>
+        </div>
+    </div>
+
+
+</div>
+{% endblock %}
