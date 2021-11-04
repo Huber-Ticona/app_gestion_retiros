@@ -18,7 +18,7 @@
     <!-- Font Awesome JS -->
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous"/>
     
-    <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     {% block encabezado %}{% endblock %}
     <title>Inicio</title>
 
@@ -26,14 +26,14 @@
 
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <a class="navbar-brand" href="{{url_for('home')}}" style="font-size: 25px; font-family:'Times New Roman', Times, serif ; color: #90919e"><img src="{{ url_for('static', filename='enco_logov3.png') }}" width="120px" height="50px"> RETIROS</a>
+        <a class="navbar-brand" href="{{url_for('home')}}" style="font-size: 25px; font-family:'Times New Roman', Times, serif ; color: #90919e"><img src="{{ url_for('static', filename='docs/enco_logov3.png') }}" width="120px" height="50px"> RETIROS</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
           <ul class="navbar-nav mr-auto">
             
-            <a class="nav-item nav-link active" href="#"><i class="fas fa-home"></i> Inicio <span class="sr-only">(current)</span></a>
+            <a class="nav-item nav-link" href="{{url_for('home')}}"><i class="fas fa-home"></i> Inicio <span class="sr-only">(current)</span></a>
             {% if nombre %}
               <a class="nav-item nav-link" href="{{url_for('panel_clasico')}}"><i class="fas fa-book-open"></i> Panel Clasico</a>
               <a class="nav-item nav-link" href="#"><i class="fas fa-chart-line"></i> Informes</a>

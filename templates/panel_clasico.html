@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
 
 {% block encabezado %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='panel_clasico.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/panel_clasico.css') }}">
 {% endblock %}
 
 {% block contenido %}
-<p>panel clasico</p>
+<p>Panel clasico del "07-05-2021"</p>
 <div class="container">
     <div class="row justify-content-md-center">
         <div class="col-sm">
@@ -13,13 +13,22 @@
 
             <table class="table">
                 <tbody>
-                {% for i in range(3): %}
                   <tr>
-                    <td><button class="btn btn-secondary">10851</button><span>ord</span></td>
-                    <td><button class="btn btn-secondary">10851</button><span class='badge badge-primary badge-pill float-right'>1</span><span class='badge badge-secondary badge-pill float-right'>1</span></td>
-                    <td><button class="btn btn-secondary">10851</button></td>
+                      {% if boletas %}
+                        {% for item in boletas %}
+                            <td>
+                                <button class="noselect">
+                                <div class="btn_cont"><span class="number_btn">{{ item[0] }}</span>
+                                <span class="badge_btn">                      
+                                <span class="circle_red"></span><span class="circle_green"></span><span class="circle_yellow"></span>
+                                </span>
+                                </div>
+                                </button>
+                            </td>
+                        {% endfor %}
+                    {% endif %}
+
                   </tr>
-                {% endfor %}
                   
                 </tbody>
               </table>
@@ -31,7 +40,7 @@
             <p>GUÍAS</p>
         </div>
     </div>
-
+    
 
 </div>
 {% endblock %}
