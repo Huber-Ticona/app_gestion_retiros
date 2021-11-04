@@ -5,42 +5,82 @@
 {% endblock %}
 
 {% block contenido %}
-<p>Panel clasico del "07-05-2021"</p>
-<div class="container">
-    <div class="row justify-content-md-center">
-        <div class="col-sm">
-            <p>BOLETAS</p>
-
-            <table class="table">
-                <tbody>
-                  <tr>
-                      {% if boletas %}
-                        {% for item in boletas %}
-                            <td>
-                                <button class="noselect">
-                                <div class="btn_cont"><span class="number_btn">{{ item[0] }}</span>
-                                <span class="badge_btn">                      
-                                <span class="circle_red"></span><span class="circle_green"></span><span class="circle_yellow"></span>
-                                </span>
-                                </div>
-                                </button>
-                            </td>
-                        {% endfor %}
+    <p>Panel clasico del "07-05-2021"</p>
+    
+    <div class="text-center">
+    
+        <input type="date" id="fecha_docs" name="fecha" value="2021-05-10">
+        <button class="btn btn-primary">Buscar</button><br>
+        <p>Informacion:</p>
+    </div>
+    <div class="info">
+        
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col col-sm-4" style="border: 2px solid red;">
+                <p>BOLETAS</p>
+                <div class="box">
+                    {% if boletas %}                                                    
+                            {% for item in boletas %}                             
+                                    <button class="boton_v1" onclick= ver_boleta({{item[0]}}) >
+                                    <div class="btn_cont"><span class="number_btn">{{ item[5] }}</span>                   
+                                    </div>
+                                    </button>                               
+                            {% endfor %}                            
                     {% endif %}
-
-                  </tr>
-                  
-                </tbody>
-              </table>
-        </div>
-        <div class="col-sm">
-            <P>FACTURAS</P>
-        </div>
-        <div class="col-sm">
-            <p>GUÍAS</p>
+                </div>  
+                    <!-- ANALIZAR VINCULACIONES DE GUIA, NOTA CREDITO 
+                                        <span class="badge_btn">                      
+                                    <span class="circle_red"></span><span class="circle_green"></span><span class="circle_yellow"></span>
+                                    </span>
+                                    -->
+                     
+            </div>
+            <div class="col col-sm-4">
+                <P>FACTURAS</P>
+                <div class="box">
+                    {% if facturas %}                                                    
+                            {% for item in facturas %}                                
+                                    <button class="boton_v1" onclick= ver_boleta({{item[0]}})>
+                                    <div class="btn_cont"><span class="number_btn">{{ item[2] }}</span>                   
+                                    </div>
+                                    </button>                               
+                            {% endfor %}                            
+                        {% endif %}
+                </div> 
+            </div>
+            <div class="col col-sm-4">
+                <p>GUÍAS</p>
+                <div class="box">
+                    {% if guias %}                                                    
+                            {% for item in guias %}                                 
+                                    <button class="boton_v1" onclick= ver_boleta({{item[5]}})>
+                                    <div class="btn_cont"><span class="number_btn">{{ item[0] }}</span>                   
+                                    </div>
+                                    </button>                               
+                            {% endfor %}                            
+                        {% endif %}
+                </div> 
+            </div>            
         </div>
     </div>
-    
+    <script>
+        function ver_boleta(folio){
+            $.ajax({
+                url: "/obt_detalle_bol_fact/" + folio,
+                type: "POST",
+                success: function(resp){
+                    $('.info').empty()
+                    console.log(resp)
+                    for( i = 0 ; i < resp.length ; i++ ){
+                        console.log(resp[i][2])
+                        $('.info').append("<p>Producto: "+ resp[i][2] + " </p><br>")
+                    }
 
-</div>
+                }
+            })
+        }
+    </script>
+
 {% endblock %}

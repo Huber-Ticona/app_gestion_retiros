@@ -1,4 +1,4 @@
-from flask import Flask, url_for , request , render_template, make_response , session
+from flask import Flask, url_for , request , render_template, make_response , session , jsonify
 from flask.wrappers import Request
 from flaskext.mysql import MySQL
 from werkzeug.utils import redirect
@@ -25,7 +25,7 @@ def home():
         usuario = session["usuario"]
         return render_template('home.html' , nombre = usuario)
     else:
-        return render_template('home.html' )
+        return redirect(url_for('login'))
     
 
 @app.route('/login' , methods = ['GET', 'POST'])   #iniciar sesión
@@ -47,19 +47,32 @@ def logout():
 
 @app.route('/panel-clasico')
 def panel_clasico():
-    if "usuario" in session:
-        usuario = session["usuario"]
 
+    if "usuario" in session:
         cursor = mysql.get_db().cursor()
         cursor.execute("select * from nota_venta where folio = 0 and fecha between '2021-05-07 00:00' and '2021-05-07 23:59' ")
         boletas = cursor.fetchall()
+
         cursor.execute("select * from nota_venta where nro_boleta = 0 and  fecha between '2021-05-07 00:00' and '2021-05-07 23:59' ")
         facturas = cursor.fetchall()
+        
+        cursor.execute("select folio, JSON_EXTRACT(detalle, '$.tipo_doc') ,JSON_EXTRACT(detalle, '$.doc_ref') from guia where fecha between '2021-10-18 00:00' and '2021-10-18 23:59'")
+        guias = cursor.fetchall()
 
-        return render_template('panel_clasico.html' , nombre = usuario, boletas=boletas ,facturas = facturas)
+        return render_template('panel_clasico.html' , boletas=boletas ,facturas=facturas, guias=guias)
     else:
         return redirect(url_for('home'))
-    
+
+@app.route('/obt_detalle_bol_fact/<int:interno>', methods = ['POST'])
+def obt_detalle_interno(interno):
+    cursor = mysql.get_db().cursor()
+    cursor.execute("select * from item  where interno = %s " , interno )
+    detalle = cursor.fetchall()
+    print(detalle)
+    print(jsonify(detalle))
+    return jsonify(detalle)
+
+
 @app.route('/mostrar/ordenes/')
 def ordenes():
     cursor = mysql.get_db().cursor()

@@ -8,37 +8,39 @@ p{
     font-size: 25px;
 }
 
-
-
-.noselect {
-  -webkit-touch-callout: none;
-    -webkit-user-select: none;
-     -khtml-user-select: none;
-       -moz-user-select: none;
-        -ms-user-select: none;
-            user-select: none;
-		-webkit-tap-highlight-color: transparent;
+.box{
+  border: 1px solid green;
+  text-align: center;
 }
 
-button {
+
+.boton_v1{
 	width: 100px;
 	height: 50px;
 	cursor: pointer;
-	font-size: 20px;
+	font-size: 18px;
 	font-family: 'Times New Roman', Times, serif;
 	letter-spacing: 5px;
 	border: 2px solid black;
 	box-shadow: 0px 0px 0px rgba(0,0,0,0.4);
 	transition: 500ms;
+
+  /*-webkit-touch-callout: none;
+  -webkit-user-select: none;
+   -khtml-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+  -webkit-tap-highlight-color: transparent; */
 }
 
 
-button:hover {
+.boton_v1:hover {
 	transform: translateY(-5px);
 	box-shadow: 0px 10px 10px rgba(0,0,0,0.4);
 }
 
-button:focus {
+.boton_v1:focus {
 	outline: none;
 }
 
@@ -87,4 +89,13 @@ button:focus {
   display: inline-block;
   margin-right: 5px;
   margin-left: 5px;
+}
+.noselect {
+  -webkit-touch-callout: none;
+    -webkit-user-select: none;
+     -khtml-user-select: none;
+       -moz-user-select: none;
+        -ms-user-select: none;
+            user-select: none;
+		-webkit-tap-highlight-color: transparent;
 }
