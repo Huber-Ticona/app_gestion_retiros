@@ -4,19 +4,32 @@ p{
     margin-left: auto;
     margin-right: auto;
     border-bottom: 1px solid black ;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
     font-size: 25px;
 }
 
 .box{
   border: 1px solid green;
   text-align: center;
+
+  
+}
+.info{
+  text-align: center;
+  border: 2px solid aqua;
+  margin-bottom: 15px;
+  background-color: chartreuse;
+}
+.info p{
+  font-size: 20px;
 }
 
 
 .boton_v1{
 	width: 100px;
 	height: 50px;
+  margin-top: 5px;
+  margin-bottom: 5px;
 	cursor: pointer;
 	font-size: 18px;
 	font-family: 'Times New Roman', Times, serif;

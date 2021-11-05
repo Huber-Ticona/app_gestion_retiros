@@ -5,13 +5,13 @@
 {% endblock %}
 
 {% block contenido %}
-    <p>Panel clasico del "07-05-2021"</p>
+    <p>Panel clasico del {{fecha}}</p>
     
     <div class="text-center">
     
-        <input type="date" id="fecha_docs" name="fecha" value="2021-05-10">
-        <button class="btn btn-primary">Buscar</button><br>
-        <p>Informacion:</p>
+        <input type="date" id="fecha_docs" name="fecha" value="{{fecha}}">
+        <button class="btn btn-primary" onclick= buscar_fecha() >Buscar</button><br>
+        
     </div>
     <div class="info">
         
@@ -21,13 +21,15 @@
             <div class="col col-sm-4" style="border: 2px solid red;">
                 <p>BOLETAS</p>
                 <div class="box">
-                    {% if boletas %}                                                    
-                            {% for item in boletas %}                             
-                                    <button class="boton_v1" onclick= ver_boleta({{item[0]}}) >
-                                    <div class="btn_cont"><span class="number_btn">{{ item[5] }}</span>                   
-                                    </div>
-                                    </button>                               
-                            {% endfor %}                            
+                    {% if boletas %}
+                    {% for item in boletas %}
+                    <button class="boton_v1" onclick=ver_bol_fact({{item[0]}})>
+                        <div class="btn_cont"><span class="number_btn">{{ item[5] }}</span>
+                        </div>
+                    </button>
+                    {% endfor %}
+                    {% else %}
+                    <p>No se encontraron boletas para la fecha actual</p>
                     {% endif %}
                 </div>  
                     <!-- ANALIZAR VINCULACIONES DE GUIA, NOTA CREDITO 
@@ -40,46 +42,84 @@
             <div class="col col-sm-4">
                 <P>FACTURAS</P>
                 <div class="box">
-                    {% if facturas %}                                                    
-                            {% for item in facturas %}                                
-                                    <button class="boton_v1" onclick= ver_boleta({{item[0]}})>
-                                    <div class="btn_cont"><span class="number_btn">{{ item[2] }}</span>                   
-                                    </div>
-                                    </button>                               
-                            {% endfor %}                            
-                        {% endif %}
+                    {% if facturas %}
+                    {% for item in facturas %}
+                    <button class="boton_v1" onclick=ver_bol_fact({{item[0]}})>
+                        <div class="btn_cont"><span class="number_btn">{{ item[2] }}</span>
+                        </div>
+                    </button>
+                    {% endfor %}
+                    {% else %}
+                    <p>No se encontraron Facturas para la fecha actual</p>
+                    {% endif %}
                 </div> 
             </div>
             <div class="col col-sm-4">
                 <p>GUÍAS</p>
                 <div class="box">
-                    {% if guias %}                                                    
+                    {% if guias != () %}                                                    
                             {% for item in guias %}                                 
-                                    <button class="boton_v1" onclick= ver_boleta({{item[5]}})>
+                                    <button class="boton_v1" onclick= ver_guia({{item[1]}})>
                                     <div class="btn_cont"><span class="number_btn">{{ item[0] }}</span>                   
                                     </div>
                                     </button>                               
-                            {% endfor %}                            
-                        {% endif %}
+                            {% endfor %}
+                    {% else %}
+                        <p>No se encontraron Guias para la fecha actual</p>               
+                    {% endif %}
                 </div> 
             </div>            
         </div>
     </div>
     <script>
-        function ver_boleta(folio){
+        function ver_bol_fact(interno){
             $.ajax({
-                url: "/obt_detalle_bol_fact/" + folio,
+                url: "/obt_detalle_bol_fact/" + interno,
                 type: "POST",
                 success: function(resp){
                     $('.info').empty()
                     console.log(resp)
+                    $('.info').append("<p>Información:</p>")
                     for( i = 0 ; i < resp.length ; i++ ){
                         console.log(resp[i][2])
-                        $('.info').append("<p>Producto: "+ resp[i][2] + " </p><br>")
+                        $('.info').append("<p>Producto: "+ resp[i][2] + " </p>")
                     }
 
                 }
             })
+        }
+        function ver_guia(interno){
+            $.ajax({
+                url: "/obt_detalle_guia/" + interno,
+                type: "POST",
+                success: function(resp){
+                    $('.info').empty()
+                    console.log(resp)
+                    descripciones = JSON.parse(resp[0][0])
+
+                    console.log(typeof(descripciones))
+                    console.log(descripciones)
+                    
+        
+                    $('.info').append("<p>Información:</p>")
+                    for( i = 0 ; i < descripciones.length ; i++ ){
+                        //console.log(resp[0][i])
+                        $('.info').append("<p>Producto: "+ descripciones[i] + " </p>")
+                    }
+                    $('.info').append("<button class='btn btn-secondary'>Gestionar</button>")
+                     
+                    
+
+                }
+            })
+        }
+
+        function buscar_fecha(){
+            nueva_fecha = $("#fecha_docs").val()
+            console.log(nueva_fecha)
+            /*window.location.href = "{{ url_for('panel_clasico') }}" + '/' + nueva_fecha */
+            window.location.href = "{{url_for('panel_clasico')}}" + "/" + nueva_fecha 
+           
         }
     </script>
 
