@@ -25,7 +25,11 @@
     <div class="info">
         
     </div>
- 
+   
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal_info">
+        Launch demo modal<i class="fas fa-check-circle"></i>
+    </button>
+      
 
     <!-- The Modal -->
     <div class="modal" id="modal_info">
@@ -38,7 +42,6 @@
 
                 <!-- Modal body -->
                 <div class="modal-body" id="info">
-
                 </div>
 
                 <!-- Modal footer -->
@@ -152,35 +155,81 @@
 
     <script>
         
-    
+        
         function ver_bol_fact(interno,tipo_doc,folio,monto_total,vendedor){ 
             $('.modal-header').empty()
             $('.modal-body').empty()          
             $('.modal-footer').empty()
-
-
+            
             $.ajax({
                 url: "/obt_detalle_bol_fact/" + interno,
                 type: "POST",
                 success: function(resp){
                     console.log(resp)
-                    a = '<div class="row"><div class="col col-sm"><table class="table" id="table_info1">'
-                    b = '<thead><td>DESCRIPCIÓN</td><td>CANTIDAD</td><td>CANTIDAD RETIRADA</td></thead></table></div>'
-                    c = '</div>'
-                    $('.modal-body').append(a + b + c)
+                    a = '<div class="row"><div class="col col-sm"><table class="table" id="table_info1"><thead><td>'
+                    b = 'DESCRIPCIÓN</td><td>CANTIDAD</td><td>CANTIDAD RETIRADA</td></thead></table></div></div>'
+
+                    c = '<div class="text-center">Documentos Adjuntos<div class="list-group" id= "lista_adjuntos"></div>'
+                    
+                    d ='<div class="input-group"><div class="custom-file"><input type="file" accept="image/*" class="custom-file-input"'
+                    e='id="archivo" required><label class="custom-file-label" for="nombre_archivo">'
+                    f ='Elegir o Tomar Foto</label></div><div class="input-group-append"><button class="btn btn-outline-secondary" type="button"'
+                    g ='onclick = adjuntar('+folio+','+'"'+ tipo_doc +'"'+') >Adjuntar</button></div></div>'
+
+                    $('.modal-body').append(a + b + c + d + e+ f +g)
 
                     for( i = 0 ; i < resp.length ; i++ ){
                         console.log(resp[i][2])
-                        $('#table_info1').append('<tr><td>'+ resp[i][0] +'</td><td>'+ resp[i][1]+'</td><td>'+ resp[i][2] +'</td></tr>'  )
+                        $('#table_info1').append('<tr><td>'+ resp[i][0] +'</td><td>'+ resp[i][1]+'</td><td><button type="button" class="btn btn-light">+</button>  '+ resp[i][2] +'  <button type="button" class="btn btn-light">-</button></td></tr>'  )
                     }
-                   
+                    i = '<h4>Vendedor: '+ vendedor + '</h4>'
+                    j = '<button class="btn btn-secondary" onclick="alert(15)" >Guardar Cambios</button>'
                     
-                    $('.modal-footer').append('<div><h4>Vendedor: '+ vendedor + '</h4><button class="btn btn-secondary">Dar de baja</button><button class="btn btn-secondary" onclick="alert(15)" >Guardar Cambios</button></div>')
+                    $('.modal-footer').append(i + j)
         
                 }
             })
             $('.modal-header').append('<h4 class="modal-title">'+  tipo_doc +': ' + folio+'  |  Total: $' +monto_total+'</h4><button type="button" class="close" data-dismiss="modal">&times;</button>')
             $('#modal_info').modal('show')// SE MUESTRA EL MODAL
+        }
+        function adjuntar(folio,tipo_doc){
+            console.log("adjuntando archivo")
+            nombre = document.getElementById('archivo').files[0].name;
+            console.log(nombre)
+            console.log(folio)
+            console.log(tipo_doc)
+
+            
+
+            var fd = new FormData();
+            var files = $('#archivo')[0].files;
+            
+            // Check file selected or not
+            if(files.length > 0 ){
+                fd.append('file',files[0]);
+    
+                $.ajax({
+                    url: '/subir/'+ folio.toString()+ '/'+ tipo_doc,
+                    type: 'post',
+                    data: fd,
+                    contentType: false,
+                    processData: false,
+                    success: function(response){
+                        if(response != 0){
+                        console.log("archivo recibido correctamente")
+                        console.log(response)
+                        $('#lista_adjuntos').append('<button type="button" class="list-group-item list-group-item-action">' + response.toString()+'<i class="fas fa-check-circle"></i></button>')
+                        }else{
+                        alert('archivo no subido');
+                        }
+                    },
+                });
+            }else{
+                alert("Please select a file.");
+            }
+           
+            
+            
         }
         function ver_guia(interno){
             $.ajax({
