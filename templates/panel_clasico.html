@@ -6,25 +6,83 @@
 
 {% block contenido %}
     <p>Panel clasico del {{fecha}}</p>
+    <div class="box_superior">
+        <div class="busqueda">
     
-    <div class="text-center">
+            <input type="date" id="fecha_docs" name="fecha" value="{{fecha}}">
+            <button class="btn btn-primary" onclick=buscar_fecha()>Buscar</button><br>
     
-        <input type="date" id="fecha_docs" name="fecha" value="{{fecha}}">
-        <button class="btn btn-primary" onclick= buscar_fecha() >Buscar</button><br>
-        
+        </div>
+        <div class="simbologia">
+            <p style="font-size: 15px;">Simbologia:
+                - Rojo: asociada a orden.
+                - amarilla: asociada a nota credito.
+                - verde: asociada a guia.
+            </p>
+        </div>
     </div>
+    
     <div class="info">
         
     </div>
+ 
+
+    <!-- The Modal -->
+    <div class="modal" id="modal_info">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header">
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body" id="info">
+
+                </div>
+
+                <!-- Modal footer -->
+                <div class="modal-footer">
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <div class="row">
             <div class="col col-sm-4" style="border: 2px solid red;">
                 <p>BOLETAS</p>
                 <div class="box">
                     {% if boletas %}
+                    
                     {% for item in boletas %}
-                    <button class="boton_v1" onclick=ver_bol_fact({{item[0]}})>
+                    <button class="boton_v1" onclick='ver_bol_fact({{item[0]}},"BOLETA",{{item[5]}},{{item[3]}},"{{item[1]}}")'>
                         <div class="btn_cont"><span class="number_btn">{{ item[5] }}</span>
+                            {% if item[7] != None  %}
+                                {% set vinculos = item[7]|safe %}
+                                <div class="badge_box" id="{{item[5]}}">
+                                </div>
+                                <script>
+                                    vinc = {{vinculos}}
+                                    console.log(vinc)
+                                    if(vinc.ordenes){
+                                        console.log('BOLETA: vinculo de orden de trabajo')
+                                        $('#{{item[5]}}').append("<span class='circle_red'></span>")
+                                        /*for(i = 0; i< vinc.ordenes.length ; i ++){
+                                            console.log(vinc.ordenes[i].tipo + ' - ' + vinc.ordenes[i].folio)
+                                        }*/
+                                    }
+                                    if(vinc.guias){
+                                        console.log("BOLETA: vinculo guia encontrado")
+                                        $('#{{item[5]}}').append("<span class='circle_yellow'></span>")
+                                    }
+                                    if(vinc.creditos){
+                                        console.log("BOLETA: vinculo credito encontrado")                                      
+                                        $('#{{item[5]}}').append("<span class='circle_green'></span>")
+                                    }
+                                </script>
+                            {% endif%}
                         </div>
                     </button>
                     {% endfor %}
@@ -32,11 +90,7 @@
                     <p>No se encontraron boletas para la fecha actual</p>
                     {% endif %}
                 </div>  
-                    <!-- ANALIZAR VINCULACIONES DE GUIA, NOTA CREDITO 
-                                        <span class="badge_btn">                      
-                                    <span class="circle_red"></span><span class="circle_green"></span><span class="circle_yellow"></span>
-                                    </span>
-                                    -->
+                   
                      
             </div>
             <div class="col col-sm-4">
@@ -44,9 +98,33 @@
                 <div class="box">
                     {% if facturas %}
                     {% for item in facturas %}
-                    <button class="boton_v1" onclick=ver_bol_fact({{item[0]}})>
+                    <button class="boton_v1" onclick= 'ver_bol_fact({{item[0]}},"FACTURA",{{item[2]}},{{item[3]}},{{item[1]}})'>
                         <div class="btn_cont"><span class="number_btn">{{ item[2] }}</span>
                         </div>
+                        {% if item[7] != None %}
+                        {% set vinculos = item[7]|safe %}
+                        <div class="badge_box" id="{{item[2]}}">
+                        </div>
+                        <script>
+                            vinc = {{ vinculos }}
+                            console.log(vinc)
+                            if (vinc.ordenes) {
+                                console.log('FACTURA: vinculo de orden de trabajo')
+                                $('#{{item[2]}}').append("<span class='circle_red'></span>")
+                                /*for(i = 0; i< vinc.ordenes.length ; i ++){
+                                    console.log(vinc.ordenes[i].tipo + ' - ' + vinc.ordenes[i].folio)
+                                }*/
+                            }
+                            if (vinc.guias) {
+                                console.log("FACTURA: vinculo guia encontrado")
+                                $('#{{item[2]}}').append("<span class='circle_yellow'></span>")
+                            }
+                            if (vinc.creditos) {
+                                console.log("FACTURA: vinculo credito encontrado")
+                                $('#{{item[2]}}').append("<span class='circle_green'></span>")
+                            }
+                        </script>
+                        {% endif%}
                     </button>
                     {% endfor %}
                     {% else %}
@@ -71,22 +149,38 @@
             </div>            
         </div>
     </div>
+
     <script>
-        function ver_bol_fact(interno){
+        
+    
+        function ver_bol_fact(interno,tipo_doc,folio,monto_total,vendedor){ 
+            $('.modal-header').empty()
+            $('.modal-body').empty()          
+            $('.modal-footer').empty()
+
+
             $.ajax({
                 url: "/obt_detalle_bol_fact/" + interno,
                 type: "POST",
                 success: function(resp){
-                    $('.info').empty()
                     console.log(resp)
-                    $('.info').append("<p>Información:</p>")
+                    a = '<div class="row"><div class="col col-sm"><table class="table" id="table_info1">'
+                    b = '<thead><td>DESCRIPCIÓN</td><td>CANTIDAD</td><td>CANTIDAD RETIRADA</td></thead></table></div>'
+                    c = '</div>'
+                    $('.modal-body').append(a + b + c)
+
                     for( i = 0 ; i < resp.length ; i++ ){
                         console.log(resp[i][2])
-                        $('.info').append("<p>Producto: "+ resp[i][2] + " </p>")
+                        $('#table_info1').append('<tr><td>'+ resp[i][0] +'</td><td>'+ resp[i][1]+'</td><td>'+ resp[i][2] +'</td></tr>'  )
                     }
-
+                   
+                    
+                    $('.modal-footer').append('<div><h4>Vendedor: '+ vendedor + '</h4><button class="btn btn-secondary">Dar de baja</button><button class="btn btn-secondary" onclick="alert(15)" >Guardar Cambios</button></div>')
+        
                 }
             })
+            $('.modal-header').append('<h4 class="modal-title">'+  tipo_doc +': ' + folio+'  |  Total: $' +monto_total+'</h4><button type="button" class="close" data-dismiss="modal">&times;</button>')
+            $('#modal_info').modal('show')// SE MUESTRA EL MODAL
         }
         function ver_guia(interno){
             $.ajax({

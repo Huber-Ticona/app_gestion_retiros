@@ -14,11 +14,26 @@ p{
 
   
 }
+.box_superior{
+  display: block;
+  border: 2px solid purple;
+  text-align: center;
+}
+.busqueda{
+  width: 250px;
+  border: 1px solid black;
+  display: inline-block;
+}
+.simbologia{
+  width: 250px;
+  border: 1px solid rosybrown;
+  display: inline-block;
+}
 .info{
   text-align: center;
   border: 2px solid aqua;
   margin-bottom: 15px;
-  background-color: chartreuse;
+  display: block;
 }
 .info p{
   font-size: 20px;
@@ -57,7 +72,9 @@ p{
 	outline: none;
 }
 
-.badge_btn{
+
+
+.badge_box{
   width: auto;
   height: 15px;
   /*border: 1px solid red; */

@@ -76,7 +76,7 @@ def panel_clasico(fecha = None):
 @app.route('/obt_detalle_bol_fact/<int:interno>', methods = ['POST'])
 def obt_detalle_bol_fact_interno(interno):
     cursor = mysql.get_db().cursor()
-    cursor.execute("select * from item  where interno = %s " , interno )
+    cursor.execute("select descripcion, cantidad, retirado, unitario, total from item  where interno = %s " , interno ) #SE AGREGO EL ESTADO RETIRADO
     detalle = cursor.fetchall()
     print(detalle)
     print(jsonify(detalle))
@@ -92,15 +92,6 @@ def obt_detalle_guia_interno(interno):
     return jsonify(detalle)
 
 
-@app.route('/mostrar/ordenes/')
-def ordenes():
-    cursor = mysql.get_db().cursor()
-    cursor.execute('SELECT * FROM clave')
-    usuarios = cursor.fetchall()
-
-    print(usuarios)
-    print(type(usuarios))
-    return redirect(url_for('home'))
 
 def busqueda_docs_fecha(inicio,fin):
     try:
@@ -120,6 +111,7 @@ def busqueda_docs_fecha(inicio,fin):
         return (boletas, facturas, guias)
     except:
         return False
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0' ,port=5000, debug=True )

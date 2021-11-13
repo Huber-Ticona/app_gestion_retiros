@@ -1,7 +1,112 @@
-Consultas MYSQL app retiros.
+********  CAMBIOS Y ESTRUCTURA *********
+CREATE TABLE guia(
+	folio INT(11),
+	interno INT(11),
+	detalle JSON,
+	nombre VARCHAR(100),
+	fecha DATETIME
+
+)
+CREATE TABLE nota_credito(
+	folio INT(11),
+	interno INT(11),
+	detalle JSON,
+	nombre VARCHAR(100),
+	fecha DATE
+)
+
+ALTER TABLE nota_venta
+ADD vinculaciones JSON
+
+ALTER TABLE item
+add retirado FLOAT(10,2)
+
+update item set retirado = 0 where 1 #establece todos los item como no retirados. analizar si hacerlo....app orden mod.
+
+*****  QUERY ********
+GUIA:
+
+select folio, interno,fecha, nombre, JSON_EXTRACT(detalle, '$.rut') as rut , JSON_EXTRACT(detalle, '$.telefono') as telefono ,
+JSON_EXTRACT(detalle, '$.neto') as neto_final,JSON_EXTRACT(detalle, '$.monto_final') as monto_final,
+JSON_EXTRACT(detalle, '$.giro') as giro, JSON_EXTRACT(detalle, '$.direccion') as direccion , 
+JSON_EXTRACT(detalle, '$.observacion') as observacion ,JSON_EXTRACT(detalle, '$.tipo') as tipo,
+JSON_EXTRACT(detalle, '$.doc_ref') as doc_ref ,JSON_EXTRACT(detalle, '$.campo_regla') as campo_regla,
+JSON_EXTRACT(detalle, '$.cantidades') as cantidades ,JSON_EXTRACT(detalle, '$.descripciones') as descripciones ,
+JSON_EXTRACT(detalle, '$.totales') as totales, JSON_EXTRACT(detalle, '$.vendedor') as vendedor from guia
+
+rut: 		JSON_EXTRACT(detalle, '$.rut') as rut
+telefono: 	JSON_EXTRACT(detalle, '$.telefono') as telefono
+giro: 		JSON_EXTRACT(detalle, '$.giro') as giro
+direccion: 	JSON_EXTRACT(detalle, '$.direccion') as direccion
+observacion: 	JSON_EXTRACT(detalle, '$.observacion') as observacion 
+tipo:  		JSON_EXTRACT(detalle, '$.tipo') as tipo
+tipo_doc: 	JSON_EXTRACT(detalle, '$.tipo_doc') as tipo_doc
+doc_ref : 	JSON_EXTRACT(detalle, '$.doc_ref') as doc_ref
+campo_regla: 	JSON_EXTRACT(detalle, '$.campo_regla') as campo_regla
+
+cantidades: 	JSON_EXTRACT(detalle, '$.cantidades') as cantidades
+descripciones: 	JSON_EXTRACT(detalle, '$.descripciones') as descripciones
+totales: 	JSON_EXTRACT(detalle, '$.totales') as totales
+untiarios: 	JSON_EXTRACT(detalle, '$.unitarios') as unitarios
+vendedor: 	JSON_EXTRACT(detalle, '$.vendedor') as vendedor
+
+neto: 		JSON_EXTRACT(detalle, '$.neto') as neto_final
+monto_final: 	JSON_EXTRACT(detalle, '$.monto_final') as monto_final
+
+NOTA DE CREDITO:
+
+select folio,interno,fecha,nombre, JSON_EXTRACT(detalle, '$.rut') as rut, JSON_EXTRACT(detalle, '$.giro') as giro,
+JSON_EXTRACT(detalle, '$.direccion') as direccion, JSON_EXTRACT(detalle, '$.observacion') as observacion ,
+JSON_EXTRACT(detalle, '$.tipo_doc') as tipo_doc,JSON_EXTRACT(detalle, '$.doc_ref') as doc_ref , 
+JSON_EXTRACT(detalle, '$.motivo') as motivo, JSON_EXTRACT(detalle, '$.cantidades') as cantidades,
+JSON_EXTRACT(detalle, '$.descripciones') as descripciones, JSON_EXTRACT(detalle, '$.unitarios') as unitarios,
+JSON_EXTRACT(detalle, '$.totales') as totales, JSON_EXTRACT(detalle, '$.neto') as neto_final,
+JSON_EXTRACT(detalle, '$.monto_final') as monto_final from nota_credito
+
+
+rut: 		JSON_EXTRACT(detalle, '$.rut') as rut
+giro: 		JSON_EXTRACT(detalle, '$.giro') as giro
+direccion: 	JSON_EXTRACT(detalle, '$.direccion') as direccion
+observacion: 	JSON_EXTRACT(detalle, '$.observacion') as observacion 
+tipo_doc: 	JSON_EXTRACT(detalle, '$.tipo_doc') as tipo_doc
+doc_ref : 	JSON_EXTRACT(detalle, '$.doc_ref') as doc_ref
+motivo: 	JSON_EXTRACT(detalle, '$.motivo') as motivo
+
+cantidades: 	JSON_EXTRACT(detalle, '$.cantidades') as cantidades
+descripciones: 	JSON_EXTRACT(detalle, '$.descripciones') as descripciones
+totales: 	JSON_EXTRACT(detalle, '$.totales') as totales
+untiarios: 	JSON_EXTRACT(detalle, '$.unitarios') as unitarios
+
+
+neto: 		JSON_EXTRACT(detalle, '$.neto') as neto_final
+monto_final: 	JSON_EXTRACT(detalle, '$.monto_final') as monto_final
+
+vinculaciones:
+{
+	"ordenes": [ { "tipo": "dimensionado", "folio": 505 } ,{ "tipo": "carpinteria", "folio": 505 } ] ,
+	"guias": [ 199800 , 145667 ],
+	"creditos": [ 19882 ]
+}
+update nota_venta set vinculaciones = 
+'{
+	"ordenes": [ { "tipo": "dimensionado", "folio": 505 } ,{ "tipo": "carpinteria", "folio": 505 } ] ,
+	"guias": [ 199800 , 145667 ],
+	"creditos": [ 19882 ]
+}' where interno = 190500
+
+OBTENER VINCULACIONES GUIA,creditos:
+SELECT folio, interno ,JSON_EXTRACT(detalle,'$.tipo_doc') ,JSON_EXTRACT(detalle, '$.doc_ref') from guia
+SELECT folio, interno ,JSON_EXTRACT(detalle,'$.tipo_doc') ,JSON_EXTRACT(detalle, '$.doc_ref') from nota_credito
+
 
 * Obtener boletas x rango de fechas.
 - select * from nota_venta where folio = 0 and  fecha between '2021-05-07 00:00' and '2021-05-07 23:59'
 
 * Obtener facturasx rango de fechas.
 - select * from nota_venta where nro_boleta = 0 and  fecha between '2021-05-07 00:00' and '2021-05-07 23:59'
+TEST:
+-select interno,folio ,detalle, JSON_EXTRACT(detalle, '$.cantidades') from guia where folio = 13998
+join venta e item:
+- select item.interno, nro_boleta, folio, descripcion,cantidad,retirado from
+ (nota_venta inner join item on item.interno = nota_venta.interno)
+update item set retirado = 35 where interno = 1412251
