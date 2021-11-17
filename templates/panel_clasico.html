@@ -154,7 +154,7 @@
     </div>
 
     <script>
-        
+        var respuesta = null
         
         function ver_bol_fact(interno,tipo_doc,folio,monto_total,vendedor){ 
             $('.modal-header').empty()
@@ -166,6 +166,7 @@
                 type: "POST",
                 success: function(resp){
                     console.log(resp)
+                    respuesta = resp
                     a = '<div class="row"><div class="col col-sm"><table class="table" id="table_info1"><thead><td>'
                     b = 'DESCRIPCIÓN</td><td>CANTIDAD</td><td>CANTIDAD RETIRADA</td></thead></table></div></div>'
 
@@ -180,17 +181,84 @@
 
                     for( i = 0 ; i < resp.length ; i++ ){
                         console.log(resp[i][2])
-                        $('#table_info1').append('<tr><td>'+ resp[i][0] +'</td><td>'+ resp[i][1]+'</td><td><button type="button" class="btn btn-light">+</button>  '+ resp[i][2] +'  <button type="button" class="btn btn-light">-</button></td></tr>'  )
+                        desc = resp[i][0]
+                        maxim = resp[i][1]
+                        ret = resp[i][2]
+                        fila = (i+1).toString()
+                        
+                        ab = '<tr><td>'+desc+'</td><td>'+maxim+'</td><td><button type="button" class="btn btn-light" onclick=reducir('+fila+','+ret+') >-</button>'
+                        cd = '<span id="item_ret_'+fila+'">  '+ret+'</span><button type="button" class="btn btn-light" onclick=aumentar('+fila+','+maxim+') >+</button></td></tr>'
+                        $('#table_info1').append( ab + cd )
                     }
                     i = '<h4>Vendedor: '+ vendedor + '</h4>'
-                    j = '<button class="btn btn-secondary" onclick="alert(15)" >Guardar Cambios</button>'
+                    j = '<button class="btn btn-secondary" onclick=guardar_cambios() >Guardar Cambios</button>'
                     
                     $('.modal-footer').append(i + j)
         
                 }
             })
-            $('.modal-header').append('<h4 class="modal-title">'+  tipo_doc +': ' + folio+'  |  Total: $' +monto_total+'</h4><button type="button" class="close" data-dismiss="modal">&times;</button>')
+            $('.modal-header').append('<h4 class="modal-title">'+  tipo_doc +': ' + folio+'  |  Total: $' +monto_total+' '+'</h4><button class="btn btn-secondary" style="margin-left:5px;" onclick= dar_baja()>Dar de Baja</button><button type="button" class="close" data-dismiss="modal">&times;</button>')
             $('#modal_info').modal('show')// SE MUESTRA EL MODAL
+        }
+        function aumentar(fila,max){
+            // max: hace referencia a la cantidad maxima que se puede retirar. En este caso la cantidad total de items comprados.
+            ret = $('#item_ret_'+fila).text()
+            
+            cant = parseInt(ret) + 1
+            if(cant <= max){
+                $('#item_ret_'+fila).text('  '+ cant.toString() + '  ')
+            }else{
+                alert('No puede retirar más de lo comprado.')
+            }
+        }
+        function reducir(fila,min){
+            // min: hace referencia a la ultima cantidad retirada que se registro en el sistema.
+            ret = $('#item_ret_'+fila).text()
+            
+            cant = parseInt(ret) - 1
+            if(cant >= min){
+                $('#item_ret_'+fila).text('  '+ cant.toString() + '  ')
+            }else{
+                alert('No puede retirar menos de los retiros registrados anteriormente.')
+            }
+        }
+        function dar_baja(){
+            var tabla = document.getElementById('table_info1')
+            for (var i = 1, row; row = tabla.rows[i]; i++) {
+                maximo = row.cells[1].innerText
+                maximo = parseInt(maximo)
+                $('#item_ret_'+i.toString()).text('  '+ maximo.toString() + '  ')
+                //retirada = $('#item_ret_'+ i.toString()).text()
+                //console.log(retirada)
+            }
+        }
+        function guardar_cambios(){
+            var tabla = document.getElementById('table_info1')
+            datos = []
+
+            for (var i = 1, row; row = tabla.rows[i]; i++) {
+                item = []
+                retirada = $('#item_ret_'+ i.toString()).text()
+                cod = respuesta[i - 1][3]
+                interno = respuesta[i - 1][4]
+                item.push(parseInt(retirada))
+                item.push(cod) 
+                item.push(interno)
+                datos.push(item)
+                console.log(item)
+            }
+            console.log(datos)
+            $.ajax({
+                url: "/actualizar/nota_venta/item",
+                type: "POST",
+                data: JSON.stringify(datos),
+                contentType: "application/json; charset=utf-8",
+                success: function(resp){
+                    console.log(resp)
+                }
+                
+            })
+        
         }
         function adjuntar(folio,tipo_doc){
             console.log("adjuntando archivo")

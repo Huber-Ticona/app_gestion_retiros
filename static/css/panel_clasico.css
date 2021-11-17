@@ -7,6 +7,10 @@ p{
     margin-bottom: 10px;
     font-size: 25px;
 }
+h4{
+  font-size: 20px;
+  
+}
 
 .box{
   border: 1px solid green;

@@ -1,6 +1,6 @@
 from flask import Flask, url_for , request , render_template, make_response , session , jsonify, flash, send_from_directory
 from flask.wrappers import Request
-from flaskext.mysql import MySQL
+import pymysql
 from werkzeug.utils import redirect, secure_filename
 from datetime import datetime
 import os
@@ -13,13 +13,8 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # CREANDO LA CONEXION A LA BASE DE DATOS
-mysql = MySQL()
-app.config['MYSQL_DATABASE_USER'] = 'huber'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'huber123'
-app.config['MYSQL_DATABASE_DB'] = 'madenco'
-app.config['MYSQL_DATABASE_HOST'] = 'localhost'
-
-mysql.init_app(app)
+miConexion = pymysql.connect( host='localhost',
+            user= 'huber', passwd='huber123', db='madenco' )
 
 app.secret_key="madenco"
 
@@ -42,7 +37,7 @@ def login():
         
 
         #VALIDAR CUENTA EN DB
-        cursor = mysql.get_db().cursor()
+        cursor = miConexion.cursor()
         sql = "select * from usuario where nombre = %s"
         cursor.execute( sql , ( nombre )  )
         consulta = cursor.fetchone()
@@ -106,10 +101,11 @@ def panel_clasico(fecha = None):
     else:
         return redirect(url_for('home'))
 
+#OBTENCION DE ITEMS X NRO INTERNO
 @app.route('/obt_detalle_bol_fact/<int:interno>', methods = ['POST'])
 def obt_detalle_bol_fact_interno(interno):
-    cursor = mysql.get_db().cursor()
-    cursor.execute("select descripcion, cantidad, retirado, unitario, total from item  where interno = %s " , interno ) #SE AGREGO EL ESTADO RETIRADO
+    cursor = miConexion.cursor()
+    cursor.execute("select descripcion, cantidad, retirado, codigo, interno, unitario, total from item  where interno = %s " , interno ) #SE AGREGO EL ESTADO RETIRADO
     detalle = cursor.fetchall()
     print(detalle)
     print(jsonify(detalle))
@@ -117,13 +113,14 @@ def obt_detalle_bol_fact_interno(interno):
 
 @app.route('/obt_detalle_guia/<int:interno>', methods = ['POST'])
 def obt_detalle_guia_interno(interno):
-    cursor = mysql.get_db().cursor()
+    cursor = miConexion.cursor()
     cursor.execute("select JSON_EXTRACT(detalle, '$.descripciones'), JSON_EXTRACT(detalle, '$.cantidades') from guia  where interno = %s " , interno )
     detalle = cursor.fetchall()
     print(detalle)
     print(jsonify(detalle))
     return jsonify(detalle)
 
+#ALMACENADO DE ARCHIVOS.
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -145,13 +142,14 @@ def upload_file(folio = None,tipo_doc = None):
         if file.filename == '':
             flash('No selected file')
             print(request.url)
-
             return redirect(request.url)
+
         if file and allowed_file(file.filename):
+            print(file.filename)
             nuevo_nombre = tipo + '_'+str(folio)+'_'+'adjunto_'+'1'+'.png'
-            print(allowed_file(file.filename))
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            #print(allowed_file(file.filename))
+            nuevo_nombre = secure_filename(nuevo_nombre)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], nuevo_nombre))
 
             return nuevo_nombre
     
@@ -159,9 +157,10 @@ def upload_file(folio = None,tipo_doc = None):
 def download_file(name):
     return send_from_directory(app.config["UPLOAD_FOLDER"], name)
 
+#OBTENCION DE DATOS DE DOCUMENTO (BOLETA,FACTURA Y GUIA)
 def busqueda_docs_fecha(inicio,fin):
     try:
-        cursor = mysql.get_db().cursor()
+        cursor = miConexion.cursor()
 
         sql1 = "select * from nota_venta where folio = 0 and fecha between %s and %s "
         cursor.execute( sql1 , ( inicio , fin )  )
@@ -177,6 +176,26 @@ def busqueda_docs_fecha(inicio,fin):
         return (boletas, facturas, guias)
     except:
         return False
+
+#ACTUALIZAR DATOS
+@app.route('/actualizar/nota_venta/item', methods=['POST'])
+def actualizar_nota_venta():
+    dato = request.json
+    print(dato)
+    cursor = miConexion.cursor()
+    # Crea la consulta
+    sql = 'update item set retirado = %s where codigo = %s and interno = %s'
+    cursor.executemany(sql , dato )
+    # connection is not autocommit by default. So you must commit to save
+    # your changes.
+    miConexion.commit()
+
+    return "recibido OK."
+
+
+@app.route('/actualizar/guia/<int:interno>', methods=['POST'])
+def actualizar_guia(interno = None):
+    print(interno)
 
 
 if __name__ == '__main__':
