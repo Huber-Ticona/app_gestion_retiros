@@ -1,4 +1,4 @@
-from flask import Flask, url_for , request , render_template, make_response , session , jsonify, flash, send_from_directory
+from flask import Flask, json, url_for , request , render_template, make_response , session , jsonify, flash, send_from_directory
 from flask.wrappers import Request
 import pymysql
 from werkzeug.utils import redirect, secure_filename
@@ -7,7 +7,7 @@ import os
 
 # DEFINIENDO PARAMETROS DE ARCHIVOS A RECIBIR
 UPLOAD_FOLDER = '/Users/super/Desktop/Madenco/capturador/adjuntos'
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {'pdf','png', 'jpg', 'jpeg'} 
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -126,8 +126,8 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/subir', methods=['POST'])
-@app.route('/subir/<int:folio>/<string:tipo_doc>', methods=['GET', 'POST'])
-def upload_file(folio = None,tipo_doc = None):
+@app.route('/subir/<int:folio>/<string:tipo_doc>/<int:interno>', methods=['GET', 'POST'])
+def upload_file(folio = None,tipo_doc = None,interno = None):
     folio = folio
     tipo = tipo_doc
     if request.method == 'POST':
@@ -146,12 +146,64 @@ def upload_file(folio = None,tipo_doc = None):
 
         if file and allowed_file(file.filename):
             print(file.filename)
-            nuevo_nombre = tipo + '_'+str(folio)+'_'+'adjunto_'+'1'+'.png'
-            #print(allowed_file(file.filename))
-            nuevo_nombre = secure_filename(nuevo_nombre)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], nuevo_nombre))
+            extension = (file.filename).split('.')
 
-            return nuevo_nombre
+            # SE CONSULTA LOS ADJUNTOS DEL DOCUMENTO
+            cursor = miConexion.cursor()
+
+            adjuntos = None
+            sql1 = "SELECT adjuntos from nota_venta where interno = %s"
+            cursor.execute( sql1 , ( interno )  )
+            adjuntos = cursor.fetchone()
+            
+            
+            print(adjuntos)
+            try:
+                if adjuntos[0] != None:
+                    print('tiene '+ str(len(adjuntos[0])) +'adjuntos')
+                   
+                    estructura = '{ "adj": '+ adjuntos[0] + '}'
+                    data = json.loads(estructura)
+                    print(type(data))
+                    print(type(data["adj"]))
+                    
+                    nuevo_nombre = tipo + '_'+str(folio)+'_'+'adjunto_'+ str(len(data["adj"]) + 1)+'.' + extension[1]
+                    data["adj"].append(nuevo_nombre)
+                    print(data["adj"])
+
+                    new_adjuntos = json.dumps(data["adj"])
+                else:
+                    new_adjuntos = []
+                    nuevo_nombre = tipo + '_'+str(folio)+'_'+'adjunto_1.' + extension[1] 
+                    new_adjuntos.append(nuevo_nombre)
+                    new_adjuntos = json.dumps(new_adjuntos)
+                    print(type(new_adjuntos))
+
+                sql2 = "update nota_venta set adjuntos = %s where interno = %s"
+                cursor.execute( sql2 , ( new_adjuntos, interno )  )
+                miConexion.commit()
+                #SE ALMACENA LOCALMENTE
+                filename = secure_filename(nuevo_nombre)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                return jsonify(
+                    data = nuevo_nombre,
+                    category="success"
+                )
+            except:
+                print('error de excepcion encontrado')
+                return jsonify(
+                    message="error de excepcion interna",
+                    category="error"
+                )
+            
+            
+        else:
+            return jsonify(
+                    message="formato invalido",
+                    category="error"
+                )
+
+            
     
 @app.route('/descargar/<name>')
 def download_file(name):
@@ -162,11 +214,11 @@ def busqueda_docs_fecha(inicio,fin):
     try:
         cursor = miConexion.cursor()
 
-        sql1 = "select * from nota_venta where folio = 0 and fecha between %s and %s "
+        sql1 = "select interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos from nota_venta where folio = 0 and fecha between %s and %s "
         cursor.execute( sql1 , ( inicio , fin )  )
         boletas = cursor.fetchall()
 
-        sql2 = "select * from nota_venta where nro_boleta = 0 and  fecha between %s and %s "
+        sql2 = "select interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos from nota_venta where nro_boleta = 0 and  fecha between %s and %s "
         cursor.execute(sql2 , ( inicio , fin ) )
         facturas = cursor.fetchall()
 

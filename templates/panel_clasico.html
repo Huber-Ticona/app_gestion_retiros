@@ -5,6 +5,7 @@
 {% endblock %}
 
 {% block contenido %}
+    
     <p>Panel clasico del {{fecha}}</p>
     <div class="box_superior">
         <div class="busqueda">
@@ -51,7 +52,9 @@
             </div>
         </div>
     </div>
-
+    <script>
+        var lista_bol_adj  = []
+    </script>
     <div class="container">
         <div class="row">
             <div class="col col-sm-4" style="border: 2px solid red;">
@@ -60,10 +63,10 @@
                     {% if boletas %}
                     
                     {% for item in boletas %}
-                    <button class="boton_v1" onclick='ver_bol_fact({{item[0]}},"BOLETA",{{item[5]}},{{item[3]}},"{{item[1]}}")'>
-                        <div class="btn_cont"><span class="number_btn">{{ item[5] }}</span>
-                            {% if item[7] != None  %}
-                                {% set vinculos = item[7]|safe %}
+                    <button class="boton_v1" onclick='ver_bol_fact({{item[0]}},"BOLETA",{{item[4]}},{{item[3]}},"{{item[1]}}")'>
+                        <div class="btn_cont"><span class="number_btn">{{ item[4] }}</span>
+                            {% if item[6] != None  %}
+                                {% set vinculos = item[6]|safe %}
                                 <div class="badge_box" id="{{item[5]}}">
                                 </div>
                                 <script>
@@ -71,21 +74,36 @@
                                     console.log(vinc)
                                     if(vinc.ordenes){
                                         console.log('BOLETA: vinculo de orden de trabajo')
-                                        $('#{{item[5]}}').append("<span class='circle_red'></span>")
+                                        $('#{{item[4]}}').append("<span class='circle_red'></span>")
                                         /*for(i = 0; i< vinc.ordenes.length ; i ++){
                                             console.log(vinc.ordenes[i].tipo + ' - ' + vinc.ordenes[i].folio)
                                         }*/
                                     }
                                     if(vinc.guias){
                                         console.log("BOLETA: vinculo guia encontrado")
-                                        $('#{{item[5]}}').append("<span class='circle_yellow'></span>")
+                                        $('#{{item[4]}}').append("<span class='circle_yellow'></span>")
                                     }
                                     if(vinc.creditos){
                                         console.log("BOLETA: vinculo credito encontrado")                                      
-                                        $('#{{item[5]}}').append("<span class='circle_green'></span>")
+                                        $('#{{item[4]}}').append("<span class='circle_green'></span>")
                                     }
                                 </script>
                             {% endif%}
+                            {% if item[7] != None %}
+                            {% set adjuntos = item[7]|safe %}
+                            
+                            <script>
+                                adj = [ {{item[4]}},{{adjuntos}} ]
+                                //console.log(adj)
+                                lista_bol_adj.push(adj)
+                            </script>
+                            {% else %}
+                            <script>
+                                adj = [{{item[4]}} , null ]
+                                lista_bol_adj.push(adj)
+                            </script>
+                            {% endif %}
+                    
                         </div>
                     </button>
                     {% endfor %}
@@ -101,11 +119,12 @@
                 <div class="box">
                     {% if facturas %}
                     {% for item in facturas %}
+                    
                     <button class="boton_v1" onclick= 'ver_bol_fact({{item[0]}},"FACTURA",{{item[2]}},{{item[3]}},{{item[1]}})'>
                         <div class="btn_cont"><span class="number_btn">{{ item[2] }}</span>
                         </div>
-                        {% if item[7] != None %}
-                        {% set vinculos = item[7]|safe %}
+                        {% if item[6] != None %}
+                        {% set vinculos = item[6]|safe %}
                         <div class="badge_box" id="{{item[2]}}">
                         </div>
                         <script>
@@ -152,7 +171,9 @@
             </div>            
         </div>
     </div>
-
+    <script>
+        
+    </script>
     <script>
         var respuesta = null
         
@@ -165,22 +186,31 @@
                 url: "/obt_detalle_bol_fact/" + interno,
                 type: "POST",
                 success: function(resp){
-                    console.log(resp)
+                    //console.log(resp)
                     respuesta = resp
                     a = '<div class="row"><div class="col col-sm"><table class="table" id="table_info1"><thead><td>'
                     b = 'DESCRIPCIÓN</td><td>CANTIDAD</td><td>CANTIDAD RETIRADA</td></thead></table></div></div>'
 
-                    c = '<div class="text-center">Documentos Adjuntos<div class="list-group" id= "lista_adjuntos"></div>'
-                    
-                    d ='<div class="input-group"><div class="custom-file"><input type="file" accept="image/*" class="custom-file-input"'
+                    c = '<div class="text-center">Documentos Adjuntos<div class="list-group" id= "lista_adjuntos">'
+                    const found = lista_bol_adj.find(element => element[0] == folio )
+                    console.log(found)
+                    items_lista = ''
+                    if(found[1] != null){
+                        console.log('tiene adjuntos')
+                        lista = found[1]
+                        for(let i = 0 ; i < lista.length ; i++){
+                            items_lista = items_lista + '<button type="button" class="list-group-item list-group-item-action">'+ lista[i] + '</button>'
+                        }
+                    }
+                    d ='</div><div class="input-group"><div class="custom-file"><input type="file" accept="image/*" class="custom-file-input"'
                     e='id="archivo" required><label class="custom-file-label" for="nombre_archivo">'
                     f ='Elegir o Tomar Foto</label></div><div class="input-group-append"><button class="btn btn-outline-secondary" type="button"'
-                    g ='onclick = adjuntar('+folio+','+'"'+ tipo_doc +'"'+') >Adjuntar</button></div></div>'
+                    g ='onclick = adjuntar('+folio+','+'"'+ tipo_doc +'"'+','+interno+') >Adjuntar</button></div></div>'
 
-                    $('.modal-body').append(a + b + c + d + e+ f +g)
+                    $('.modal-body').append(a + b + c+ items_lista+ d + e+ f +g)
 
                     for( i = 0 ; i < resp.length ; i++ ){
-                        console.log(resp[i][2])
+                        //console.log(resp[i][2])//items retirados
                         desc = resp[i][0]
                         maxim = resp[i][1]
                         ret = resp[i][2]
@@ -190,6 +220,7 @@
                         cd = '<span id="item_ret_'+fila+'">  '+ret+'</span><button type="button" class="btn btn-light" onclick=aumentar('+fila+','+maxim+') >+</button></td></tr>'
                         $('#table_info1').append( ab + cd )
                     }
+                    
                     i = '<h4>Vendedor: '+ vendedor + '</h4>'
                     j = '<button class="btn btn-secondary" onclick=guardar_cambios() >Guardar Cambios</button>'
                     
@@ -197,6 +228,9 @@
         
                 }
             })
+            //
+            
+            
             $('.modal-header').append('<h4 class="modal-title">'+  tipo_doc +': ' + folio+'  |  Total: $' +monto_total+' '+'</h4><button class="btn btn-secondary" style="margin-left:5px;" onclick= dar_baja()>Dar de Baja</button><button type="button" class="close" data-dismiss="modal">&times;</button>')
             $('#modal_info').modal('show')// SE MUESTRA EL MODAL
         }
@@ -231,6 +265,7 @@
                 //retirada = $('#item_ret_'+ i.toString()).text()
                 //console.log(retirada)
             }
+            console.log(lista_bol_adj)
         }
         function guardar_cambios(){
             var tabla = document.getElementById('table_info1')
@@ -260,15 +295,9 @@
             })
         
         }
-        function adjuntar(folio,tipo_doc){
+        function adjuntar(folio,tipo_doc,interno){
             console.log("adjuntando archivo")
-            nombre = document.getElementById('archivo').files[0].name;
-            console.log(nombre)
-            console.log(folio)
-            console.log(tipo_doc)
-
             
-
             var fd = new FormData();
             var files = $('#archivo')[0].files;
             
@@ -277,18 +306,21 @@
                 fd.append('file',files[0]);
     
                 $.ajax({
-                    url: '/subir/'+ folio.toString()+ '/'+ tipo_doc,
+                    url: '/subir/'+ folio.toString()+ '/'+ tipo_doc+ '/' + interno.toString(),
                     type: 'post',
                     data: fd,
                     contentType: false,
                     processData: false,
                     success: function(response){
-                        if(response != 0){
+                        if(response.category == "success"){
                         console.log("archivo recibido correctamente")
                         console.log(response)
-                        $('#lista_adjuntos').append('<button type="button" class="list-group-item list-group-item-action">' + response.toString()+'<i class="fas fa-check-circle"></i></button>')
+                        alert("Documento adjuntado correctamente")
+                        window.location.reload()
+                        //$('#lista_adjuntos').append('<button type="button" class="list-group-item list-group-item-action">' + response.data+'<i class="fas fa-check-circle"></i></button>')
                         }else{
-                        alert('archivo no subido');
+                            console.log(response.message)
+                            alert(response.message)
                         }
                     },
                 });
