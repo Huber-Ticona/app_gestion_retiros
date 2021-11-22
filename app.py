@@ -114,7 +114,7 @@ def obt_detalle_bol_fact_interno(interno):
 @app.route('/obt_detalle_guia/<int:interno>', methods = ['POST'])
 def obt_detalle_guia_interno(interno):
     cursor = miConexion.cursor()
-    cursor.execute("select JSON_EXTRACT(detalle, '$.descripciones'), JSON_EXTRACT(detalle, '$.cantidades') from guia  where interno = %s " , interno )
+    cursor.execute("select detalle from guia  where interno = %s " , interno )
     detalle = cursor.fetchall()
     print(detalle)
     print(jsonify(detalle))
@@ -214,15 +214,15 @@ def busqueda_docs_fecha(inicio,fin):
     try:
         cursor = miConexion.cursor()
 
-        sql1 = "select interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos from nota_venta where folio = 0 and fecha between %s and %s "
+        sql1 = "select interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro from nota_venta where folio = 0 and fecha between %s and %s "
         cursor.execute( sql1 , ( inicio , fin )  )
         boletas = cursor.fetchall()
 
-        sql2 = "select interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos from nota_venta where nro_boleta = 0 and  fecha between %s and %s "
+        sql2 = "select interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro from nota_venta where nro_boleta = 0 and  fecha between %s and %s "
         cursor.execute(sql2 , ( inicio , fin ) )
         facturas = cursor.fetchall()
 
-        sql3 = "select folio,interno, JSON_EXTRACT(detalle,'$.tipo_doc') ,JSON_EXTRACT(detalle, '$.doc_ref') from guia where fecha between %s and %s "
+        sql3 = "select folio,interno,JSON_EXTRACT(detalle, '$.vendedor'),JSON_EXTRACT(detalle, '$.monto_final') ,JSON_EXTRACT(detalle,'$.tipo_doc') ,JSON_EXTRACT(detalle, '$.doc_ref') from guia where fecha between %s and %s "
         cursor.execute(sql3 , ( inicio , fin ) )
         guias = cursor.fetchall()
         return (boletas, facturas, guias)
@@ -233,16 +233,30 @@ def busqueda_docs_fecha(inicio,fin):
 @app.route('/actualizar/nota_venta/item', methods=['POST'])
 def actualizar_nota_venta():
     dato = request.json
-    print(dato)
-    cursor = miConexion.cursor()
-    # Crea la consulta
-    sql = 'update item set retirado = %s where codigo = %s and interno = %s'
-    cursor.executemany(sql , dato )
-    # connection is not autocommit by default. So you must commit to save
-    # your changes.
-    miConexion.commit()
-
-    return "recibido OK."
+    estado = None
+    if dato[0]:
+        print("retirado completo")
+        estado = "COMPLETO"
+        
+    else:
+        print("retirado incompleto")
+        estado = "INCOMPLETO"
+    print(dato[1])
+    print(dato[2])
+    try:
+        cursor = miConexion.cursor()
+        sql = 'update nota_venta set estado_retiro = %s where interno = %s'
+        cursor.execute(sql , (estado , dato[2]) )
+        #miConexion.commit()
+        # Crea la consulta
+        sql = 'update item set retirado = %s where codigo = %s and interno = %s'
+        cursor.executemany(sql , dato[1] )
+        # connection is not autocommit by default. So you must commit to save
+        # your changes.
+        miConexion.commit()
+        return jsonify(data = True, message = "Cantidad retirada actualizada")
+    except:
+        return jsonify(data = False, message = "Error al actualizar cantidades. Consulte a su operador")
 
 
 @app.route('/actualizar/guia/<int:interno>', methods=['POST'])

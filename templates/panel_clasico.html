@@ -14,23 +14,27 @@
             <button class="btn btn-primary" onclick=buscar_fecha()>Buscar</button><br>
     
         </div>
-        <div class="simbologia">
-            <p style="font-size: 15px;">Simbologia:
-                - Rojo: asociada a orden.
-                - amarilla: asociada a nota credito.
-                - verde: asociada a guia.
-            </p>
-        </div>
-    </div>
-    
-    <div class="info">
+        <button class="btn btn-primary" onclick= ver_simbologia()>Ver simbologia</button>
         
+        <div class="simbologia" id="simb" style="display: none;">
+            <ul class="list-group">
+                <li class="list-group-item"><span class='circle_red'></span>: Asociada a una nota de credito</li>
+                <li class="list-group-item"><span class='circle_green'></span>: Asociada a orden de trabajo.</li>
+                <li class="list-group-item"><span class='circle_yellow'></span>: Asociada a guia.</li>
+            </ul>
+        </div>
+        <script>
+            function ver_simbologia(){
+                console.log(lista_fact_adj)
+                var x = document.getElementById("simb")
+                if (x.style.display === "none") {
+                    x.style.display = "inline-block";
+                } else {
+                    x.style.display = "none";
+                }
+            }
+        </script>
     </div>
-   
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal_info">
-        Launch demo modal<i class="fas fa-check-circle"></i>
-    </button>
-      
 
     <!-- The Modal -->
     <div class="modal" id="modal_info">
@@ -54,6 +58,7 @@
     </div>
     <script>
         var lista_bol_adj  = []
+        var lista_fact_adj = []
     </script>
     <div class="container">
         <div class="row">
@@ -63,11 +68,26 @@
                     {% if boletas %}
                     
                     {% for item in boletas %}
-                    <button class="boton_v1" onclick='ver_bol_fact({{item[0]}},"BOLETA",{{item[4]}},{{item[3]}},"{{item[1]}}")'>
-                        <div class="btn_cont"><span class="number_btn">{{ item[4] }}</span>
+                    <button class="boton_v1" id = "btn_{{item[4]}}" onclick='ver_bol_fact({{item[0]}},"BOLETA",{{item[4]}},{{item[3]}},"{{item[1]}}")'>
+                        <div class="btn_cont" ><span class="number_btn" id="btn_span_{{item[4]}}">{{ item[4] }}
+                            {% if item[8] %}
+                                {% if item[8] == "COMPLETO" %}
+                                <script>
+                                    document.getElementById("btn_{{item[4]}}").style.background = 'linear-gradient(to bottom, #33ccff 0%, #ff99cc 100%)'
+                                </script>
+                                {% elif item[8] == "INCOMPLETO" %}
+                                    
+                                {% endif %}
+                            {% else %}
+                            <script>
+                                //console.log("NO RETIRADO")
+                            </script>
+                            {% endif%}
+                        </span>
                             {% if item[6] != None  %}
+                            
                                 {% set vinculos = item[6]|safe %}
-                                <div class="badge_box" id="{{item[5]}}">
+                                <div class="badge_box" id="{{item[4]}}">
                                 </div>
                                 <script>
                                     vinc = {{vinculos}}
@@ -87,14 +107,18 @@
                                         console.log("BOLETA: vinculo credito encontrado")                                      
                                         $('#{{item[4]}}').append("<span class='circle_green'></span>")
                                     }
+
+                                    //document.getElementById("btn_span_{{item[4]}}").style.marginTop = "-10px";  
                                 </script>
-                            {% endif%}
+                                
+                            {% endif %}
+                        </div>
+                    </button>
                             {% if item[7] != None %}
                             {% set adjuntos = item[7]|safe %}
                             
                             <script>
-                                adj = [ {{item[4]}},{{adjuntos}} ]
-                                //console.log(adj)
+                                adj = [ {{item[4]}},{{adjuntos}}]
                                 lista_bol_adj.push(adj)
                             </script>
                             {% else %}
@@ -103,9 +127,8 @@
                                 lista_bol_adj.push(adj)
                             </script>
                             {% endif %}
-                    
-                        </div>
-                    </button>
+                            
+                        
                     {% endfor %}
                     {% else %}
                     <p>No se encontraron boletas para la fecha actual</p>
@@ -120,7 +143,7 @@
                     {% if facturas %}
                     {% for item in facturas %}
                     
-                    <button class="boton_v1" onclick= 'ver_bol_fact({{item[0]}},"FACTURA",{{item[2]}},{{item[3]}},{{item[1]}})'>
+                    <button class="boton_v1" onclick= 'ver_bol_fact({{item[0]}},"FACTURA",{{item[2]}},{{item[3]}},"{{item[1]}}")'>
                         <div class="btn_cont"><span class="number_btn">{{ item[2] }}</span>
                         </div>
                         {% if item[6] != None %}
@@ -147,6 +170,21 @@
                             }
                         </script>
                         {% endif%}
+                        {% if item[7] != None %}
+                            {% set adjuntos2 = item[7]|safe %}
+                            
+                            <script>
+                                console.log("encontrado")
+                                adj = [ {{item[2]}},{{adjuntos2}}]
+                                lista_fact_adj.push(adj)
+                            </script>
+                        {% else %}
+                        <script>
+                            console.log("{{item[7]}}")
+                            adj = [{{item[2]}} , null ]
+                            lista_fact_adj.push(adj)
+                        </script>
+                        {% endif %}
                     </button>
                     {% endfor %}
                     {% else %}
@@ -159,7 +197,7 @@
                 <div class="box">
                     {% if guias != () %}                                                    
                             {% for item in guias %}                                 
-                                    <button class="boton_v1" onclick= ver_guia({{item[1]}})>
+                                    <button class="boton_v1" onclick= 'ver_guia({{item[1]}},"GUIA",{{item[0]}},{{item[3]}},{{item[2]|safe}})' >
                                     <div class="btn_cont"><span class="number_btn">{{ item[0] }}</span>                   
                                     </div>
                                     </button>                               
@@ -192,17 +230,8 @@
                     b = 'DESCRIPCIÓN</td><td>CANTIDAD</td><td>CANTIDAD RETIRADA</td></thead></table></div></div>'
 
                     c = '<div class="text-center">Documentos Adjuntos<div class="list-group" id= "lista_adjuntos">'
-                    const found = lista_bol_adj.find(element => element[0] == folio )
-                    console.log(found)
-                    items_lista = ''
-                    if(found[1] != null){
-                        console.log('tiene adjuntos')
-                        lista = found[1]
-                        for(let i = 0 ; i < lista.length ; i++){
-                            items_lista = items_lista + '<button type="button" class="list-group-item list-group-item-action">'+ lista[i] + '</button>'
-                        }
-                    }
-                    d ='</div><div class="input-group"><div class="custom-file"><input type="file" accept="image/*" class="custom-file-input"'
+                    items_lista = buscar_adj(tipo_doc,folio)                    
+                    d ='</div><div class="input-group" style="margin-top:10px;"><div class="custom-file"><input type="file" accept="image/*" class="custom-file-input"'
                     e='id="archivo" required><label class="custom-file-label" for="nombre_archivo">'
                     f ='Elegir o Tomar Foto</label></div><div class="input-group-append"><button class="btn btn-outline-secondary" type="button"'
                     g ='onclick = adjuntar('+folio+','+'"'+ tipo_doc +'"'+','+interno+') >Adjuntar</button></div></div>'
@@ -216,7 +245,7 @@
                         ret = resp[i][2]
                         fila = (i+1).toString()
                         
-                        ab = '<tr><td>'+desc+'</td><td>'+maxim+'</td><td><button type="button" class="btn btn-light" onclick=reducir('+fila+','+ret+') >-</button>'
+                        ab = '<tr><td>'+desc+'</td><td id="item_max_'+fila+'">'+maxim+'</td><td><button type="button" class="btn btn-light" onclick=reducir('+fila+','+ret+') >-</button>'
                         cd = '<span id="item_ret_'+fila+'">  '+ret+'</span><button type="button" class="btn btn-light" onclick=aumentar('+fila+','+maxim+') >+</button></td></tr>'
                         $('#table_info1').append( ab + cd )
                     }
@@ -234,6 +263,78 @@
             $('.modal-header').append('<h4 class="modal-title">'+  tipo_doc +': ' + folio+'  |  Total: $' +monto_total+' '+'</h4><button class="btn btn-secondary" style="margin-left:5px;" onclick= dar_baja()>Dar de Baja</button><button type="button" class="close" data-dismiss="modal">&times;</button>')
             $('#modal_info').modal('show')// SE MUESTRA EL MODAL
         }
+        function ver_guia(interno,tipo_doc,folio,monto_total,vendedor){ 
+            $('.modal-header').empty()
+            $('.modal-body').empty()          
+            $('.modal-footer').empty()
+            
+            $.ajax({
+                url: "/obt_detalle_guia/" + interno,
+                type: "POST",
+                success: function(resp){
+                    console.log(resp)
+                    detalle = JSON.parse(resp)
+                    console.log(detalle)
+                    a = '<div class="row"><div class="col col-sm"><table class="table" id="table_info1"><thead><td>'
+                    b = 'DESCRIPCIÓN</td><td>CANTIDAD</td><td>CANTIDAD RETIRADA</td></thead></table></div></div>'
+
+                    c = '<div class="text-center">Documentos Adjuntos<div class="list-group" id= "lista_adjuntos">'
+                    items_lista = 'FALTA POR TERMINAR'
+                    //items_lista = buscar_adj(tipo_doc,folio)                    
+                    d ='</div><div class="input-group" style="margin-top:10px;"><div class="custom-file"><input type="file" accept="image/*" class="custom-file-input"'
+                    e='id="archivo" required><label class="custom-file-label" for="nombre_archivo">'
+                    f ='Elegir o Tomar Foto</label></div><div class="input-group-append"><button class="btn btn-outline-secondary" type="button"'
+                    g ='onclick = adjuntar('+folio+','+'"'+ tipo_doc +'"'+','+interno+') >Adjuntar</button></div></div>'
+
+                    $('.modal-body').append(a + b + c+ items_lista+ d + e+ f +g)
+                    cantidades = detalle.cantidades
+                    descripciones = detalle.descripciones
+                    retirados = detalle.retirados
+                    console.log(retirados)
+                    for( i = 0 ; i < cantidades.length ; i++ ){
+                        //console.log(resp[i][2])//items retirados
+                        desc = descripciones[i]
+                        maxim = cantidades[i]
+                        ret = "XY"//resp[i][2]
+                        fila = (i+1).toString()
+                        
+                        ab = '<tr><td>'+desc+'</td><td id="item_max_'+fila+'">'+maxim+'</td><td><button type="button" class="btn btn-light" onclick=reducir('+fila+','+ret+') >-</button>'
+                        cd = '<span id="item_ret_'+fila+'">  '+ret+'</span><button type="button" class="btn btn-light" onclick=aumentar('+fila+','+maxim+') >+</button></td></tr>'
+                        $('#table_info1').append( ab + cd )
+                    }
+                    
+                    i = '<h4>Vendedor: '+ vendedor + '</h4>'
+                    j = '<button class="btn btn-secondary" onclick=guardar_cambios() >Guardar Cambios</button>'
+                    
+                    $('.modal-footer').append(i + j)
+    
+                }
+            })
+            //
+            
+            
+            $('.modal-header').append('<h4 class="modal-title">'+  tipo_doc +': ' + folio+'  |  Total: $' +monto_total+' '+'</h4><button class="btn btn-secondary" style="margin-left:5px;" onclick= dar_baja()>Dar de Baja</button><button type="button" class="close" data-dismiss="modal">&times;</button>')
+            $('#modal_info').modal('show')// SE MUESTRA EL MODAL
+        }
+        function buscar_adj(tipo,folio){
+            let found = []
+            if(tipo== "BOLETA"){
+                found = lista_bol_adj.find(element => element[0] == folio )
+            }
+            else if(tipo=="FACTURA"){
+                 found = lista_fact_adj.find(element => element[0] == folio )
+                }
+            console.log(found)
+            items_lista = ""
+            if(found[1] != null){
+                console.log('tiene adjuntos')
+                lista = found[1]
+                for(let i = 0 ; i < lista.length ; i++){
+                    items_lista = items_lista + '<a href="/descargar/'+lista[i]+'">'+'<button type="button" class="list-group-item list-group-item-action">'+ lista[i] + '</button></a>'
+                }
+            }
+            return items_lista
+        }
         function aumentar(fila,max){
             // max: hace referencia a la cantidad maxima que se puede retirar. En este caso la cantidad total de items comprados.
             ret = $('#item_ret_'+fila).text()
@@ -250,10 +351,10 @@
             ret = $('#item_ret_'+fila).text()
             
             cant = parseInt(ret) - 1
-            if(cant >= min){
+            if(cant >= 0){
                 $('#item_ret_'+fila).text('  '+ cant.toString() + '  ')
             }else{
-                alert('No puede retirar menos de los retiros registrados anteriormente.')
+                alert('No puede retirar menos de 0.')
             }
         }
         function dar_baja(){
@@ -270,26 +371,44 @@
         function guardar_cambios(){
             var tabla = document.getElementById('table_info1')
             datos = []
-
+            estado = true
+            interno = respuesta[0][4]
             for (var i = 1, row; row = tabla.rows[i]; i++) {
                 item = []
+                comprada = $('#item_max_'+ i.toString()).text()
                 retirada = $('#item_ret_'+ i.toString()).text()
+                console.log("Fila: "+comprada + " - " + retirada)
+                if(parseInt(comprada) != parseInt(retirada)){
+                    estado = false
+                }
                 cod = respuesta[i - 1][3]
-                interno = respuesta[i - 1][4]
+                
                 item.push(parseInt(retirada))
                 item.push(cod) 
                 item.push(interno)
                 datos.push(item)
                 console.log(item)
             }
-            console.log(datos)
+            if(estado){
+                console.log('Retirado completamente detectado')
+            }else{console.log("Retirado incompleto detectado")}
+            new_dato = []
+            new_dato.push(estado)
+            new_dato.push(datos)
+            new_dato.push(interno)
+            console.log(new_dato)
             $.ajax({
                 url: "/actualizar/nota_venta/item",
                 type: "POST",
-                data: JSON.stringify(datos),
+                data: JSON.stringify(new_dato),
                 contentType: "application/json; charset=utf-8",
                 success: function(resp){
-                    console.log(resp)
+                    if(resp.data){
+                        alert(resp.message)
+                        window.location.reload()
+                    }else{
+                        alert(resp.message)
+                    }
                 }
                 
             })
@@ -331,7 +450,7 @@
             
             
         }
-        function ver_guia(interno){
+        /*function ver_guia(interno){
             $.ajax({
                 url: "/obt_detalle_guia/" + interno,
                 type: "POST",
@@ -355,7 +474,7 @@
 
                 }
             })
-        }
+        }*/
 
         function buscar_fecha(){
             nueva_fecha = $("#fecha_docs").val()
