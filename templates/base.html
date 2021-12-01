@@ -36,7 +36,7 @@
             <a class="nav-item nav-link" href="{{url_for('home')}}"><i class="fas fa-home"></i> Inicio <span class="sr-only">(current)</span></a>
             {% if usuario %}
               <a class="nav-item nav-link" href="{{url_for('panel_clasico')}}"><i class="fas fa-book-open"></i> Panel Clasico</a>
-              <a class="nav-item nav-link" href="#"><i class="fas fa-chart-line"></i> Informes</a>
+              
       
               
               <li class="nav-item dropdown">
@@ -44,12 +44,13 @@
                   <i class="fas fa-scroll"></i> Documentos
               </a>
               <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                  <a class="dropdown-item" href="#">Ordenes de trabajo</a>
+                  <a class="dropdown-item" href="{{url_for('documentos')}}" >Ordenes de trabajo</a>
                   <a class="dropdown-item" href="#">Boletas</a>
                   <a class="dropdown-item" href="#">Facturas</a>
                   <a class="dropdown-item" href="#">Notas de credito</a>
                   
                   <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="#"><i class="fas fa-chart-line"></i> Informes</a>
                   <a class="dropdown-item" href="#" id="no_tocar">No tocar</a>
               </div>
               </li>
@@ -59,6 +60,7 @@
           
           <ul class="navbar-nav ml-auto">
               {% if usuario %}
+                <a class="nav-item nav-link " href="{{url_for('mi_cuenta')}}"><i class="fas fa-user"></i> Mi cuenta</a>
                 <a class="nav-item nav-link " href="{{url_for('logout')}}"><i class="fas fa-door-open"></i> Cerrar Sesión</a>
               {% else %}
                 <a class="nav-item nav-link " href="{{url_for('login')}}"><i class="fas fa-door-open"></i> Iniciar Sesión</a>

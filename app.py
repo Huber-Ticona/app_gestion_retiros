@@ -1,3 +1,4 @@
+from typing import final
 from flask import Flask, json, url_for , request , render_template, make_response , session , jsonify, flash, send_from_directory
 from flask.wrappers import Request
 import pymysql
@@ -13,8 +14,7 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # CREANDO LA CONEXION A LA BASE DE DATOS
-miConexion = pymysql.connect( host='localhost',
-            user= 'huber', passwd='huber123', db='madenco' )
+db_config = ( 'localhost','root', '', 'madenco' )
 
 app.secret_key="madenco"
 
@@ -30,40 +30,41 @@ def home():
 @app.route('/login' , methods = ['GET', 'POST'])   #iniciar sesión
 def login():
 
-    error = None
     if request.method == 'POST':
         nombre = request.form['nombre_usuario']
         contra = request.form['contraseña']
-        
 
         #VALIDAR CUENTA EN DB
-        cursor = miConexion.cursor()
-        sql = "select * from usuario where nombre = %s"
-        cursor.execute( sql , ( nombre )  )
-        consulta = cursor.fetchone()
+        miConexion = pymysql.connect( host='localhost',
+            user= 'root', passwd='', db='madenco' )
+        try:
+            with miConexion.cursor() as cursor:
         
-        if consulta:
-            print("usuario encontrado")
-            sql = "select * from usuario where nombre = %s and contraseña = %s "
-            cursor.execute( sql , ( nombre , contra )  )
-            consulta2 = cursor.fetchone()
-            
+                sql = "select * from usuario where nombre = %s and tipo ='porteria' "
+                cursor.execute( sql , ( nombre )  )
+                consulta = cursor.fetchone()
+                
+                if consulta:
+                    print("usuario: "+ consulta[10] +" de porteria encontrado")
+                    sql = "select * from usuario where nombre = %s and contraseña = %s "
+                    cursor.execute( sql , ( nombre , contra )  )
+                    consulta2 = cursor.fetchone()
+                    
+                    if consulta2:
+                        print('super_usuario: ' + consulta2[7] )
+                        #flash('You were successfully logged in')
+                        print("usuario y contraseña correctos.")
+                        session['usuario'] = consulta2[10]
+                        return redirect(url_for("home"))
+                    else:
+                        flash('Contraseña invalida')
+                        print("contra invalida")
+                else:
+                    flash('Nombre de usuario de porteria invalido')
+                    print("usuario no encontrado, en la bd")
+        finally:
+            miConexion.close()
 
-            if consulta2:
-                #flash('You were successfully logged in')
-                print("usuario y contraseña correctos.")
-                session['usuario'] = nombre
-                return redirect(url_for("home"))
-            else:
-                error = 'Invalid password'
-                flash('Contraseña invalida')
-                print("contra invalida")
-        else:
-            error = 'Invalid user'
-            flash('Nombre de usuario invalido')
-            print("usuario no encontrado, en la bd")
-        
-    
     return render_template('login.html' )
         
 
@@ -74,51 +75,61 @@ def logout():
     return redirect(url_for('home'))
 
 @app.route('/panel_clasico')
-@app.route('/panel_clasico/<string:fecha>')
 def panel_clasico(fecha = None):
-
     if "usuario" in session:
         usuario = session["usuario"]
-        if  fecha == None:
-            fecha =  datetime.now().date()
-            print("Fecha de hoy: " + str(fecha))
-            inicio = str(fecha) + ' 00:00'
-            fin = str(fecha) + ' 23:59'
-        else:
-            print("Fecha recibida: " + fecha)
-            inicio = str(fecha) + ' 00:00'
-            fin = str(fecha) + ' 23:59'
-
-        documentos = busqueda_docs_fecha(inicio=inicio , fin=fin) #Funcion detecta errores de DB conexion y retorna false.
-        if documentos:
-            boletas = documentos[0]
-            facturas = documentos[1] #Si no se encontraron datos retorna una tupla vacia ().
-            guias = documentos[2]
-            return render_template('panel_clasico.html', usuario = usuario , boletas=boletas ,facturas=facturas, guias=guias, fecha= str(fecha) )
-        else:
-            return render_template('no_db_con.html')
-        
+        fecha =  datetime.now().date()
+        return render_template('panel_clasico.html', usuario = usuario , fecha= str(fecha) )
     else:
         return redirect(url_for('home'))
+
+@app.route('/documentos')
+def documentos():
+    if "usuario" in session:
+        usuario = session["usuario"]
+        return render_template('documentos.html'  ,usuario = usuario)
+    else:
+        return redirect(url_for('login'))
+
+@app.route('/mi_cuenta')
+def mi_cuenta():
+    if "usuario" in session:
+        usuario = session["usuario"]
+        return render_template('cuenta.html' , usuario = usuario)
+    else:
+        return redirect(url_for('login'))
+    
 
 #OBTENCION DE ITEMS X NRO INTERNO
 @app.route('/obt_detalle_bol_fact/<int:interno>', methods = ['POST'])
 def obt_detalle_bol_fact_interno(interno):
-    cursor = miConexion.cursor()
-    cursor.execute("select descripcion, cantidad, retirado, codigo, interno, unitario, total from item  where interno = %s " , interno ) #SE AGREGO EL ESTADO RETIRADO
-    detalle = cursor.fetchall()
-    print(detalle)
-    print(jsonify(detalle))
-    return jsonify(detalle)
+    miConexion = pymysql.connect( host='localhost',
+            user= 'root', passwd='', db='madenco' )
+    try:
+        with miConexion.cursor() as cursor:
+            cursor = miConexion.cursor()
+            cursor.execute("select descripcion, cantidad, retirado, codigo, interno, unitario, total from item  where interno = %s " , interno ) #SE AGREGO EL ESTADO RETIRADO
+            detalle = cursor.fetchall()
+            print(detalle)
+            print(jsonify(detalle))
+            return jsonify(detalle)
+    finally:
+        miConexion.close()
 
 @app.route('/obt_detalle_guia/<int:interno>', methods = ['POST'])
 def obt_detalle_guia_interno(interno):
-    cursor = miConexion.cursor()
-    cursor.execute("select detalle from guia  where interno = %s " , interno )
-    detalle = cursor.fetchall()
-    print(detalle)
-    print(jsonify(detalle))
-    return jsonify(detalle)
+    miConexion = pymysql.connect( host='localhost',
+            user= 'root', passwd='', db='madenco' )
+    try:
+        with miConexion.cursor() as cursor:
+            cursor = miConexion.cursor()
+            cursor.execute("select detalle , adjuntos from guia  where interno = %s " , interno )
+            detalle = cursor.fetchall()
+            print(detalle)
+            print(jsonify(detalle[0]))
+            return jsonify(detalle[0])
+    finally:
+        miConexion.close()
 
 #ALMACENADO DE ARCHIVOS.
 def allowed_file(filename):
@@ -149,53 +160,64 @@ def upload_file(folio = None,tipo_doc = None,interno = None):
             extension = (file.filename).split('.')
 
             # SE CONSULTA LOS ADJUNTOS DEL DOCUMENTO
-            cursor = miConexion.cursor()
-
-            adjuntos = None
-            sql1 = "SELECT adjuntos from nota_venta where interno = %s"
-            cursor.execute( sql1 , ( interno )  )
-            adjuntos = cursor.fetchone()
-            
-            
-            print(adjuntos)
+            miConexion = pymysql.connect( host='localhost',
+            user= 'root', passwd='', db='madenco' )
             try:
-                if adjuntos[0] != None:
-                    print('tiene '+ str(len(adjuntos[0])) +'adjuntos')
-                   
-                    estructura = '{ "adj": '+ adjuntos[0] + '}'
-                    data = json.loads(estructura)
-                    print(type(data))
-                    print(type(data["adj"]))
+                with miConexion.cursor() as cursor:
+                    adjuntos = None
                     
-                    nuevo_nombre = tipo + '_'+str(folio)+'_'+'adjunto_'+ str(len(data["adj"]) + 1)+'.' + extension[1]
-                    data["adj"].append(nuevo_nombre)
-                    print(data["adj"])
+                    if tipo == "GUIA":
+                        tabla = "guia"
+                    else:
+                        tabla = "nota_venta"
+                    
+                    sql1 = "SELECT adjuntos from "+ tabla +" where interno = %s"
+                    cursor.execute( sql1 , ( interno )  )
+                    adjuntos = cursor.fetchone()
+                    
+                    
+                    print(adjuntos)
+                    
+                    if adjuntos[0] != None: #Si existe adjuntos del documento
+                        print('tiene '+ str(len(adjuntos[0])) +'adjuntos')
+                    
+                        estructura = '{ "adj": '+ adjuntos[0] + '}'
+                        data = json.loads(estructura)
+                        print(type(data))
+                        print(type(data["adj"]))
+                        
+                        nuevo_nombre = tipo + '_'+str(folio)+'_'+'adjunto_'+ str(len(data["adj"]) + 1)+'.' + extension[1]
+                        data["adj"].append(nuevo_nombre)
+                        print(data["adj"])
 
-                    new_adjuntos = json.dumps(data["adj"])
-                else:
-                    new_adjuntos = []
-                    nuevo_nombre = tipo + '_'+str(folio)+'_'+'adjunto_1.' + extension[1] 
-                    new_adjuntos.append(nuevo_nombre)
-                    new_adjuntos = json.dumps(new_adjuntos)
-                    print(type(new_adjuntos))
+                        new_adjuntos = json.dumps(data["adj"])
+                    else:
+                        print("no tiene adj")
+                        new_adjuntos = []
+                        nuevo_nombre = tipo + '_'+str(folio)+'_'+'adjunto_1.' + extension[1] 
+                        new_adjuntos.append(nuevo_nombre)
+                        new_adjuntos = json.dumps(new_adjuntos)
+                        print(type(new_adjuntos))
 
-                sql2 = "update nota_venta set adjuntos = %s where interno = %s"
-                cursor.execute( sql2 , ( new_adjuntos, interno )  )
-                miConexion.commit()
-                #SE ALMACENA LOCALMENTE
-                filename = secure_filename(nuevo_nombre)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                return jsonify(
-                    data = nuevo_nombre,
-                    category="success"
-                )
+                    sql2 = "update "+ tabla +" set adjuntos = %s where interno = %s"
+                    cursor.execute( sql2 , ( new_adjuntos, interno )  )
+                    miConexion.commit()
+                    #SE ALMACENA LOCALMENTE
+                    filename = secure_filename(nuevo_nombre)
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    return jsonify(
+                        data = nuevo_nombre,
+                        category="success",
+                        message = tipo_doc + ": Imagen adjuntada con exito"
+                    )
             except:
                 print('error de excepcion encontrado')
                 return jsonify(
                     message="error de excepcion interna",
                     category="error"
                 )
-            
+            finally:
+                miConexion.close()
             
         else:
             return jsonify(
@@ -211,23 +233,45 @@ def download_file(name):
 
 #OBTENCION DE DATOS DE DOCUMENTO (BOLETA,FACTURA Y GUIA)
 def busqueda_docs_fecha(inicio,fin):
+    miConexion = pymysql.connect( host='localhost',
+            user= 'root', passwd='', db='madenco' )
     try:
-        cursor = miConexion.cursor()
+        with miConexion.cursor() as cursor:
+        #cursor = miConexion.cursor()
 
-        sql1 = "select interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro from nota_venta where folio = 0 and fecha between %s and %s "
-        cursor.execute( sql1 , ( inicio , fin )  )
-        boletas = cursor.fetchall()
+            sql1 = "select interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro,revisor from nota_venta where folio = 0 and fecha between %s and %s "
+            cursor.execute( sql1 , ( inicio , fin )  )
+            boletas = cursor.fetchall()
 
-        sql2 = "select interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro from nota_venta where nro_boleta = 0 and  fecha between %s and %s "
-        cursor.execute(sql2 , ( inicio , fin ) )
-        facturas = cursor.fetchall()
+            sql2 = "select interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro from nota_venta where nro_boleta = 0 and  fecha between %s and %s "
+            cursor.execute(sql2 , ( inicio , fin ) )
+            facturas = cursor.fetchall()
 
-        sql3 = "select folio,interno,JSON_EXTRACT(detalle, '$.vendedor'),JSON_EXTRACT(detalle, '$.monto_final') ,JSON_EXTRACT(detalle,'$.tipo_doc') ,JSON_EXTRACT(detalle, '$.doc_ref') from guia where fecha between %s and %s "
-        cursor.execute(sql3 , ( inicio , fin ) )
-        guias = cursor.fetchall()
-        return (boletas, facturas, guias)
+            sql3 = "select folio, interno,JSON_EXTRACT(detalle, '$.vendedor'),JSON_EXTRACT(detalle, '$.monto_final'), JSON_EXTRACT(detalle, '$.estado_retiro')  from guia where fecha between %s and %s "
+            cursor.execute(sql3 , ( inicio , fin ) )
+            guias = cursor.fetchall()
+            return (boletas, facturas, guias)
     except:
         return False
+    finally:
+        miConexion.close()
+#obt 2
+@app.route('/obtener/docs/<string:fecha>')
+def obt_docs(fecha):
+    print("Fecha recibida: " + fecha)
+    inicio = str(fecha) + ' 00:00'
+    fin = str(fecha) + ' 23:59'
+
+    documentos = busqueda_docs_fecha(inicio,fin)
+    if documentos:
+        l_bol = documentos[0]
+        l_fact = documentos[1]
+        l_guia = documentos[2]
+        print(l_guia)
+        return render_template('body_panel.html' , boletas = l_bol,facturas = l_fact,guias = l_guia)
+    else:
+        return render_template('no_db_con.html')
+
 
 #ACTUALIZAR DATOS
 @app.route('/actualizar/nota_venta/item', methods=['POST'])
@@ -243,26 +287,76 @@ def actualizar_nota_venta():
         estado = "INCOMPLETO"
     print(dato[1])
     print(dato[2])
+
+    miConexion = pymysql.connect( host='localhost',
+            user= 'root', passwd='', db='madenco' )
     try:
-        cursor = miConexion.cursor()
-        sql = 'update nota_venta set estado_retiro = %s where interno = %s'
-        cursor.execute(sql , (estado , dato[2]) )
-        #miConexion.commit()
-        # Crea la consulta
-        sql = 'update item set retirado = %s where codigo = %s and interno = %s'
-        cursor.executemany(sql , dato[1] )
-        # connection is not autocommit by default. So you must commit to save
-        # your changes.
-        miConexion.commit()
-        return jsonify(data = True, message = "Cantidad retirada actualizada")
+        with miConexion.cursor() as cursor:
+            sql = 'update nota_venta set estado_retiro = %s where interno = %s'
+            cursor.execute(sql , (estado , dato[2]) )
+            #miConexion.commit()
+            # Crea la consulta
+            sql = 'update item set retirado = %s where codigo = %s and interno = %s'
+            cursor.executemany(sql , dato[1] )
+            # connection is not autocommit by default. So you must commit to save
+            # your changes.
+            miConexion.commit()
+            return jsonify(data = True, message = "Cantidad retirada actualizada")
     except:
         return jsonify(data = False, message = "Error al actualizar cantidades. Consulte a su operador")
+    finally:
+        miConexion.close()
+        
 
+@app.route('/actualizar/guia/item', methods=['POST'])
+def actualizar_guia():
+    dato = request.json
+    print(dato)
+    estado = None
+    if dato[0]:
+        print("retirado completo")
+        estado = "COMPLETO"
+        
+    else:
+        print("retirado incompleto")
+        estado = "INCOMPLETO"
+    nuevo = json.dumps(dato[1]) #items retirados
+    nuevo = nuevo[1: len(nuevo) - 1]
 
-@app.route('/actualizar/guia/<int:interno>', methods=['POST'])
-def actualizar_guia(interno = None):
-    print(interno)
+    miConexion = pymysql.connect( host='localhost',
+            user= 'root', passwd='', db='madenco' )
+    try:
+        with miConexion.cursor() as cursor:
+    
+            sql = "SELECT JSON_EXTRACT( detalle , '$.retirado') from guia where interno = %s"
+            cursor.execute(sql, dato[2])
+            registro = cursor.fetchone()
+            print(registro)
+            if registro[0]:  #Si existe registro del retiro anteriormente
+                print("tiene registrado retiros, comenzando a actualizar...")
+                sql = "SELECT JSON_REPLACE(detalle, '$.retirado', JSON_ARRAY("+ nuevo +"),'$.estado_retiro', %s) from guia where interno = %s"
+                cursor.execute(sql, (estado , dato[2] ))
+                resultado = cursor.fetchone()
+                print(resultado)
 
+            else:
+                print("no tiene registrado registros, creando registros ...")
+                sql = "SELECT JSON_INSERT( detalle , '$.retirado', JSON_ARRAY("+ nuevo +"),'$.estado_retiro', %s ) from guia where interno = %s"
+                cursor.execute(sql, (estado , dato[2] ))
+                resultado = cursor.fetchone()
+                print(resultado)
+
+            sql2 = "UPDATE guia SET detalle = %s where interno = %s"
+            cursor.execute(sql2 , (resultado, dato[2]))
+            resultado2 = cursor.fetchone()
+            print(resultado2)
+            miConexion.commit()
+
+            return jsonify(data = True, message = "Cantidad retirada actualizada guia")
+    except:
+        return jsonify(data = False, message = "Error al actualizar cantidades. Consulte a su operador")
+    finally:
+        miConexion.close()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0' ,port=5000, debug=True )

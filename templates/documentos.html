@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+
+{% block encabezado %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/documentos.css') }}">
+{% endblock %}
+
+{% block contenido %}
+    <div class="text-center">
+        <div>
+            <h1>Buscador de </h1>
+        </div>
+        <div>
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">Fecha</th>
+                    <th scope="col">Folio</th>
+                    <th scope="col">Interno</th>
+                    <th scope="col">Detalle</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <th scope="row">1</th>
+                    <td>Mark</td>
+                    <td>Otto</td>
+                    <td>@mdo</td>
+                    <td>detalle 1</td>
+                </tr>
+                <tr>
+                    <th scope="row">2</th>
+                    <td>Jacob</td>
+                    <td>Thornton</td>
+                    <td>@fat</td>
+                    <td>detalle 1</td>
+                </tr>
+                <tr>
+                    <th scope="row">3</th>
+                    <td>Larry</td>
+                    <td>the Bird</td>
+                    <td>@twitter</td>
+                    <td>detalle 1</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
