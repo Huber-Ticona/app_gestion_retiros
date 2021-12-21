@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
     <!-- JQUERY -->
@@ -17,7 +17,9 @@
 
     <!-- Font Awesome JS -->
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous"/>
-    
+    <!-- TIPO DE LETRA FUENTE GOOGLE-->
+    <link href='https://fonts.googleapis.com/css?family=Cinzel' rel='stylesheet'> 
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     {% block encabezado %}{% endblock %}
     <title>Inicio</title>
@@ -25,7 +27,8 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
+  <div>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark" id="panel">
         <a class="navbar-brand" href="{{url_for('home')}}" style="font-size: 25px; font-family:'Times New Roman', Times, serif ; color: #90919e"><img src="{{ url_for('static', filename='docs/enco_logov3.png') }}" width="120px" height="50px"> RETIROS</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
@@ -44,13 +47,13 @@
                   <i class="fas fa-scroll"></i> Documentos
               </a>
               <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                  <a class="dropdown-item" href="{{url_for('documentos')}}" >Ordenes de trabajo</a>
-                  <a class="dropdown-item" href="#">Boletas</a>
-                  <a class="dropdown-item" href="#">Facturas</a>
-                  <a class="dropdown-item" href="#">Notas de credito</a>
-                  
+                  <a class="dropdown-item" href="/documentos/ordenes" >Ordenes de trabajo</a>
+                  <a class="dropdown-item" href="/documentos/boletas">Boletas</a>
+                  <a class="dropdown-item" href="/documentos/facturas">Facturas</a>
+                  <a class="dropdown-item" href="/documentos/creditos">Notas de credito</a>
+                  <a class="dropdown-item" href="/documentos/guias">Guias</a>
                   <div class="dropdown-divider"></div>
-                  <a class="dropdown-item" href="#"><i class="fas fa-chart-line"></i> Informes</a>
+                  <a class="dropdown-item" href="/informes"><i class="fas fa-chart-line"></i> Informes</a>
                   <a class="dropdown-item" href="#" id="no_tocar">No tocar</a>
               </div>
               </li>
@@ -70,6 +73,6 @@
       </nav>
       {% block contenido %}{% endblock %}
       {% block pie_pagina %}{% endblock %}
-
+  </div>
 </body>
 </html>

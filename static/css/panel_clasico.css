@@ -7,20 +7,19 @@ p{
     margin-bottom: 10px;
     font-size: 25px;
 }
-h4{
-  font-size: 20px;
-  
+h2{
+   font-size: 15px;
 }
 
 .box{
-  border: 1px solid green;
+  /*border: 1px solid green;*/
   text-align: center;
 
   
 }
 .box_superior{
   display: block;
-  border: 2px solid purple;
+  /*border: 2px solid purple; */
   text-align: center;
 }
 .busqueda{
@@ -42,8 +41,20 @@ h4{
   background: linear-gradient(to bottom, #33ccff 0%, #ff99cc 100%);
   display:inline-block"
 }
+.simbologia #btn_simbologia2{
+  width: 50px;
+  height: 25px;
+  background: linear-gradient(to bottom, #99ff66 0%, #ffff99 100%);
+  display:inline-block"
+}
 .modal h4{
+  font-size: 13px;
+}
+.modal h3{
   font-size: 15px;
+}
+.modal-footer{
+  justify-content: space-between;
 }
 
 
@@ -130,13 +141,33 @@ h4{
   margin-right: 5px;
   margin-left: 5px;
 }
-.noselect {
-  -webkit-touch-callout: none;
-    -webkit-user-select: none;
-     -khtml-user-select: none;
-       -moz-user-select: none;
-        -ms-user-select: none;
-            user-select: none;
-		-webkit-tap-highlight-color: transparent;
+
+.myinput{
+  width: 40px;
+}
+
+.myButton2 {
+	box-shadow:inset 0px 1px 0px 0px #ffffff;
+	background:linear-gradient(to bottom, #f9f9f9 5%, #e9e9e9 100%);
+	background-color:#f9f9f9;
+	border-radius:6px;
+	border:1px solid #dcdcdc;
+	display:inline-block;
+	cursor:pointer;
+	color:#666666;
+	font-family:Arial;
+	font-size:15px;
+	font-weight:bold;
+	padding:9px 8px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #ffffff;
+}
+.myButton2:hover {
+	background:linear-gradient(to bottom, #e9e9e9 5%, #f9f9f9 100%);
+	background-color:#e9e9e9;
+}
+.myButton2:active {
+	position:relative;
+	top:1px;
 }
 

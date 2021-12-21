@@ -6,45 +6,577 @@
 {% endblock %}
 
 {% block contenido %}
-    <div class="text-center">
-        <div>
-            <h1>Buscador de </h1>
-        </div>
-        <div>
-            <table class="table table-striped">
+            {% if tipo: %}
+            <script>
+                var tipo = '{{tipo}}'
+            </script>
+            {% endif %}
+            <script>
+                var lista_datos = null
+                var tipo_orden = '' 
+            </script>
+
+            <div class="text-center" style="margin-top: 10px;">
+                <h1>Buscador de {{tipo}}</h1>
+                <br>
+
+                <div id="mensaje">
+                </div>               
+            </div>
+            <!-- The Modal -->
+            <div class="modal" id="modal_info">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+
+                        <!-- Modal Header -->
+                        <div class="modal-header">
+                        </div>
+
+                        <!-- Modal body -->
+                        <div class="modal-body" id="info">
+                        </div>
+
+                        <!-- Modal footer -->
+                        <div class="modal-footer">
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            {% if tipo == 'ordenes' %}
+            <div class="text-center">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="inlineRadioOptions" id="dim" value="dimensionado">
+                    <label class="form-check-label" for="inlineRadio1">Dimensionado</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="inlineRadioOptions" id="elab" value="elaboracion">
+                    <label class="form-check-label" for="inlineRadio2">Elaboracion</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="inlineRadioOptions" id="carp" value="carpinteria">
+                    <label class="form-check-label" for="inlineRadio3">Carpinteria</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="inlineRadioOptions" id="pall" value="pallets">
+                    <label class="form-check-label" for="inlineRadio3">Pallet</label>
+                  </div>
+            </div>
+                
+                {% endif %}
+            {% if tipo_orden %}
+            <script>
+                $("#{{tipo_orden}}").prop("checked", true);
+            </script>
+            {% endif %}
+    
+        
+        <div class="table-responsive">
+            <table class="table">
                 <thead>
                 <tr>
-                    <th scope="col">Nombre</th>
-                    <th scope="col">Fecha</th>
-                    <th scope="col">Folio</th>
-                    <th scope="col">Interno</th>
-                    <th scope="col">Detalle</th>
+                    <th scope="col" class="text-center">Nro Folio</th>
+                    <th scope="col" class="text-center">Fecha</th>
+                    {% if tipo == 'ordenes' %}
+                        <th scope="col" class="text-center">Telefono</th>
+                    {% else %}
+                        <th scope="col" class="text-center">Nro Interno</th>
+                    {% endif %}
+
+                    <th scope="col" class="text-center">Cliente</th>
+                    <th scope="col" class="text-center">Detalle</th>
+
+                    {% if tipo == 'ordenes' %}
+                        <th scope="col" class="text-center">Creador</th>
+                    {% else %}
+                        <th scope="col" class="text-center">Monto Total</th>
+                    {% endif %}
+
+                    {% if tipo == 'guias' or tipo == 'boletas' or tipo == 'facturas' %}
+                        <th scope="col" class="text-center">Estado Retido</th>
+                        <th scope="col" class="text-center">Revisor</th>
+                    {% elif tipo == 'creditos' %}
+                        <th scope="col" class="text-center">Observación</th>
+                        <th scope="col" class="text-center">Motivo</th>
+                    {%elif tipo == 'ordenes' %}
+                        <th scope="col" class="text-center">Despacho</th>
+                        <th scope="col" class="text-center">Estado</th>
+                    {% endif %}
                 </tr>
                 </thead>
-                <tbody>
                 <tr>
-                    <th scope="row">1</th>
-                    <td>Mark</td>
-                    <td>Otto</td>
-                    <td>@mdo</td>
-                    <td>detalle 1</td>
+                    <td class="text-center"><input class="input-number" type="number" name="" id="folio"><button class="myButton" onclick="buscar_doc('folio')">Buscar</button></td>
+                    <td class="text-center"><div class="box-fecha"><input class="input-fecha" type="date" value="{{fecha}}" id="fecha1"><input class="input-fecha" type="date" value="{{fecha}}" id="fecha2"><button class="myButton" onclick="buscar_doc('fecha')" >Buscar</button></div></td>
+                    <td class="text-center"><input class="input-number" type="number" name="" id="interno" disabled><button class="btn btn-secondary" onclick="buscar_doc()" disabled>Buscar</button></td>
+                    <td class="text-center"><input class="input-text" type="text" name="" id="cliente"><button class="myButton" onclick="buscar_doc('cliente')" >Buscar</button></td>
+                    <td class="text-center"><input class="input-text" type="number" name="" id="" disabled ><button class="btn btn-secondary" onclick="buscar_doc()" disabled >Buscar</button></td>
+                    <td class="text-center"><input class="input-number" type="number" name="" id="" disabled><button class="btn btn-secondary" onclick="buscar_doc()" disabled >Buscar</button></td>
+                    <td class="text-center"><input class="input-text" type="number" name="" id="" disabled><button class="btn btn-secondary" onclick="buscar_doc()" disabled >Buscar</button></td>
+                    <td class="text-center"><input class="input-text" type="number" name="" id="" disabled><button class="btn btn-secondary" onclick="buscar_doc()" disabled >Buscar</button></td>
+
                 </tr>
-                <tr>
-                    <th scope="row">2</th>
-                    <td>Jacob</td>
-                    <td>Thornton</td>
-                    <td>@fat</td>
-                    <td>detalle 1</td>
-                </tr>
-                <tr>
-                    <th scope="row">3</th>
-                    <td>Larry</td>
-                    <td>the Bird</td>
-                    <td>@twitter</td>
-                    <td>detalle 1</td>
-                </tr>
+                {% if folio %}
+                    <script>
+                        $('#folio').val('{{folio}}')
+                        console.log('folio encontrado, modificado...')
+                    </script>
+                {% endif %}
+                <tbody id="cuerpo-tabla">
+            
                 </tbody>
             </table>
+
+            <script>
+                function buscar_doc(parametro){
+                    $('#mensaje').empty()
+                    $('#cuerpo-tabla').empty()
+                    fecha_inicio = $("#fecha1").val()
+                    fecha_termino = $("#fecha2").val()
+                    folio = $('#folio').val()
+                    interno = $('#interno').val()
+                    cliente = $('#cliente').val()
+                    let buscar = false
+                    let check = true // VERIFICA SI SE SELECCIONA UN RADIOCHECK DE ORDEN DE TRABAJO ..
+                    console.log(tipo)
+
+                    base_url = "/documentos/{{tipo}}"
+
+                    if(tipo == 'ordenes' ){
+                        tipo_orden = ''
+                        if (document.getElementById('dim').checked) {
+                            tipo_orden = document.getElementById('dim').value;
+                        }
+                        if (document.getElementById('elab').checked) {
+                            tipo_orden = document.getElementById('elab').value;
+                        }
+                        if (document.getElementById('carp').checked) {
+                            tipo_orden = document.getElementById('carp').value;
+                        }
+                        if (document.getElementById('pall').checked) {
+                            tipo_orden = document.getElementById('pall').value;
+                        }
+                        if(tipo_orden != ''){
+                            check = true
+                            base_url = "/documentos/{{tipo}}/" + tipo_orden
+                            console.log(base_url)
+                        }
+                        else{
+                            check = false
+                            $('#mensaje').append('<div class="alert alert-warning"><button type="button" class="close" data-dismiss="alert">&times;</button>'+'Seleccione un tipo de orden para poder realizar la busqueda'+'</div>')
+                        }
+                        
+                    }
+
+                    if(parametro == 'folio'){
+                        console.log(folio)
+                        if(folio != '' ){
+                                aux_url = base_url +"/folio/" + folio.toString()
+                                buscar = true
+                            }
+                        else {
+                            $('#mensaje').append('<div class="alert alert-warning"><button type="button" class="close" data-dismiss="alert">&times;</button>'+'Primero ingrese un Numero de Folio'+'</div>')                
+                        }
+                    }
+                    else if(parametro == 'fecha'){
+                        console.log('fecha inicio: ' + fecha_inicio)
+                        console.log('fecha inicio: ' + fecha_termino)
+                        if(fecha_inicio != null && fecha_termino != null){
+                            aux_url = base_url + "/fecha/"  + fecha_inicio + '/' + fecha_termino
+                            buscar = true
+                        }else {
+                            $('#mensaje').append('<div class="alert alert-warning"><button type="button" class="close" data-dismiss="alert">&times;</button>'+'Ingrese Fecha de inicio y Fecha de termino'+'</div>')
+                    }
+                    }
+                    else if(parametro == 'cliente'){
+                        console.log(cliente)
+                        if(cliente != ''){
+                            aux_url =  base_url + "/cliente/" + cliente
+                            buscar = true
+                        }else {
+                            $('#mensaje').append('<div class="alert alert-warning"><button type="button" class="close" data-dismiss="alert">&times;</button>'+'Ingrese una porcion del nombre de cliente que desea buscar'+'</div>') 
+                        }
+                    }
+                    // FUNCION AJAX QUE ENVIA PETICIONES
+                    if(buscar == true && check == true){
+                        console.log('COMIENZA LA BUSQUEDA DE {{tipo}} por '+ parametro +'...')
+                        $.ajax({
+                            url: aux_url,
+                            type: "POST",
+                            success: function(resp){
+                                console.log(resp)
+
+                                if(resp.length > 0){
+                                    lista_datos = resp // SE GUARDA EN UNA VARIABLE GLOBAL
+                                    for(let i = 0; i < resp.length ; i++){
+                                    let item = resp[i]
+                                    let d = new Date(item[1])
+                                    let datestring = d.getDate()  + "-" + (d.getMonth()+1) + "-" + d.getFullYear() //+ " " + d.getHours() + ":" + d.getMinutes();
+                                    
+                                    xfolio = '<td class="text-center">'+ (item[0]).toString() +'</td>'
+                                    xfecha = '<td class="text-center">'+ datestring +'</td>'
+                                    xinterno = '<td class="text-center">'+ (item[2]).toString()+'</td>'
+                                    if( tipo == 'ordenes'){
+                                        xinterno = '<td class="text-center">'+ tipo_orden +'</td>'
+                                    }
+                                    xnombre = '<td class="text-center">'+ item[3]+ '</td>'  
+                                    xdetalle = '<td class="text-center"><button class="btn btn-secondary" onclick = "ver_detalle('+ i.toString() +')"> Ver Detalle </button></td>'  
+                                    xtotal = '<td class="text-center">'+ (item[5]).toString() +'</td>'
+                                    xestado = '<td class="text-center">'+ (item[6]) +'</td>'
+                                    xrevisor = '<td class="text-center">'+ (item[7]) +'</td>'
+                                       
+                                    $('#cuerpo-tabla').append('<tr>' + xfolio + xfecha + xinterno + xnombre + xdetalle +xtotal + xestado + xrevisor + '</tr>')
+                                    }
+                                    
+                                }
+                                else{
+                                    $('#mensaje').empty()
+                                    $('#mensaje').append('<div class="alert alert-warning"><button type="button" class="close" data-dismiss="alert">&times;</button>'+'No se encontraron {{tipo}} en el sistema'+'</div>')
+                                    
+                                }
+                            }
+                        })
+                    }
+                    else{
+                        console.log('No se proporcionaron datos --> FINALIZA LA BUSQUEDA DE {{tipo}} por '+ parametro +'...')
+                    }
+                }  
+
+                function ver_detalle(index){
+                    if(tipo == 'guias'){
+                        console.log(lista_datos[index][4])
+                        ver_guia(lista_datos[index][2],'GUIA',lista_datos[index][0],lista_datos[index][5], '' )
+                    }
+                    else if(tipo == 'boletas' || tipo == 'facturas'){
+                        
+                        console.log(lista_datos[index])
+                        ver_bol_fact(lista_datos[index][2], 'BOLETA',lista_datos[index][0], lista_datos[index][5] , '', '',lista_datos[index][8],lista_datos[index][9])
+                    }
+                    else if(tipo == 'creditos'){
+                        console.log(lista_datos[index])
+                        ver_credito(index,'CREDITO')
+                    }
+                    else if(tipo == 'ordenes'){
+                        console.log(tipo_orden)
+                        console.log(lista_datos[index])
+                        ver_orden(index,tipo_orden.toUpperCase())
+                    }
+                    
+                }
+                function ver_guia(interno,tipo_doc,folio,monto_total,vendedor){ 
+                    $('.modal-header').empty()
+                    $('.modal-body').empty()          
+                    $('.modal-footer').empty()
+                    
+                    $.ajax({
+                        url: "/obt_detalle_guia/" + interno,
+                        type: "POST",
+                        success: function(resp){
+                            console.log(resp)
+                            detalle = JSON.parse(resp[0])
+                            console.log(detalle) 
+                            adj = JSON.parse(resp[1])
+                            vinc = JSON.parse(resp[2])
+                            console.log(adj)                
+                            a = '<div class="row"><div class="col col-sm"><table class="table" id="table_info1"><thead><td>'
+                            b = 'DESCRIPCIÓN</td><td>CANTIDAD</td><td>CANTIDAD RETIRADA</td></thead></table></div></div>'
+                
+                            items_lista = ''
+                            nro_adj = 0
+                            if(adj != null){
+                                for(let j = 0; j < adj.length ; j++ ){
+                                items_lista = items_lista + '<a href="/descargar/'+adj[j]+'">'+'<button type="button" class="list-group-item list-group-item-action">'+ adj[0] + '</button></a>'
+                                nro_adj = nro_adj + 1
+                            }
+                            }
+                            //ADJUNTOS
+                            c = '<div class="text-center">Documentos Adjuntos <span class="badge badge-info"> '+nro_adj.toString()+'</span> <button class="btn btn-secondary" onclick="ver_adjuntos()">Ver</button><div class="list-group" id= "lista_adjuntos" style="display:None;">'
+                            d ='</div><div class="input-group" style="margin-top:10px;"><div class="custom-file"><input type="file" accept="image/*" class="custom-file-input"'
+                            e='id="archivo" required><label class="custom-file-label" for="nombre_archivo">'
+                            f ='Elegir o Tomar Foto</label></div><div class="input-group-append"><button class="btn btn-outline-secondary" type="button"'
+                            g ='onclick = adjuntar('+folio+','+'"'+ tipo_doc +'"'+','+interno+') >Adjuntar</button></div></div>'
+                            //VINCULOS
+                            nro_vinc = 0 //SE ESTABLECE 0 LA CANTIDAD DE VINCULOS
+                            i = ''
+                            if(detalle.tipo_doc == 'FACTURA'){
+                                i =  '<li class="list-group-item">FACTURA: <a href="/documentos/facturas/'+(detalle.doc_ref).toString() +'"  class="myButton2" >'+(detalle.doc_ref).toString() +'</a></li>'
+                                nro_vinc = 1
+                            }
+                            else if(detalle.tipo_doc == 'BOLETA'){
+                                i =  '<li class="list-group-item">BOLETA: <a href="/documentos/boletas/'+(detalle.doc_ref).toString() +'"  class="myButton2" >'+(detalle.doc_ref).toString() +'</a></li>'
+                                nro_vinc = 1
+                            }
+                            if(vinc){
+                                nro_vinc = nro_vinc + 1
+                                i = i + visualizar_vinc_ordenes(vinc)
+                            }
+                            
+                
+                            h = '<div class="text-center">Vinculos <span class="badge badge-info">'+nro_vinc.toString()+'</span> <button class="btn btn-secondary" onclick="ver_vinculos()"> Ver </button><ul class="list-group" id= "lista_vinculos" style="display: None;">'
+                            k =  '</ul></div>'
+                
+                            $('.modal-body').append(a + b + c + items_lista + d + e+ f +g + h + i + k)
+                
+                            cantidades = detalle.cantidades
+                            descripciones = detalle.descripciones
+                            retirados = detalle.retirado
+                            revisor = detalle.revisor
+                            //console.log(retirados)
+                            for( i = 0 ; i < cantidades.length ; i++ ){
+                                //console.log(resp[i][2])//items retirados
+                                desc = descripciones[i]
+                                maxim = cantidades[i]
+                                if(retirados){
+                                    console.log("existe cantidad retirada")
+                                    ret = retirados[i]
+                                }else{ 
+                                    console.log("no existe retirado")
+                                    ret = "0" 
+                                }
+                                fila = (i+1).toString()
+                                
+                                ab = '<tr><td>'+desc+'</td><td id="item_max_'+fila+'">'+maxim+'</td><td><button type="button" class="btn btn-light" onclick=reducir('+fila+','+ret+') >-</button>'
+                                cd = '<span id="item_ret_'+fila+'">  '+ret+'</span><button type="button" class="btn btn-light" onclick=aumentar('+fila+','+maxim+') >+</button></td></tr>'
+                                $('#table_info1').append( ab + cd )
+                            }
+                            
+                            l = '<div><h4>Vendedor: '+ vendedor + '</h4><h4>Revisor: '+ revisor + '</h4></div>'
+                            m = '<button class="btn btn-secondary" onclick=guardar_cambios_2('+ interno.toString()+') >Guardar Cambios</button>'
+                            
+                            $('.modal-footer').append(l + m)
+                
+                        }
+                    })
+                    //
+                    
+                    
+                    $('.modal-header').append('<h3 class="modal-title">'+  tipo_doc +': ' + folio+'  |  Total: $' +monto_total+' '+'</h3><button class="btn btn-secondary" style="margin-left:5px;" onclick= dar_baja()>Dar de Baja</button><button type="button" class="close" data-dismiss="modal">&times;</button>')
+                    $('#modal_info').modal('show')// SE MUESTRA EL MODAL
+                }
+
+                function ver_bol_fact(interno,tipo_doc,folio,monto_total,vendedor,revisor,aux_vinc,aux_adj){ 
+                    $('.modal-header').empty()
+                    $('.modal-body').empty()          
+                    $('.modal-footer').empty()
+                    
+                    $.ajax({
+                        url: "/obt_detalle_bol_fact/" + interno,
+                        type: "POST",
+                        success: function(resp){
+                            //console.log(resp)
+                            respuesta = resp
+                            a = '<div class="row"><div class="col col-sm"><table class="table" id="table_info1"><thead><td>'
+                            b = 'DESCRIPCIÓN</td><td>CANTIDAD</td><td>CANTIDAD RETIRADA</td></thead></table></div></div>'
+                            items_lista = '' //buscar_adj(tipo_doc,folio)
+                            //ADJUNTOS
+                            c = '<div class="text-center">Documentos Adjuntos <span class="badge badge-info"> '+items_lista+'</span> <button class="btn btn-secondary" onclick="ver_adjuntos()">Ver</button><div class="list-group" id= "lista_adjuntos" style="display:None;">'
+                            d ='</div><div class="input-group" style="margin-top:10px;"><div class="custom-file"><input type="file" accept="image/*" class="custom-file-input"'
+                            e='id="archivo" required><label class="custom-file-label" for="nombre_archivo">'
+                            f ='Elegir o Tomar Foto</label></div><div class="input-group-append"><button class="btn btn-outline-secondary" type="button"'
+                            g ='onclick = adjuntar('+folio+','+'"'+ tipo_doc +'"'+','+interno+') >Adjuntar</button></div></div>'
+                            //VINCULOS
+                            v = ''
+                            nro_vinc = 0
+                            if(aux_vinc){
+                                vinculos = JSON.parse(aux_vinc)
+                                if(vinculos.ordenes){
+                                    console.log('tiene ordenes')
+                                    v = v + visualizar_vinc_ordenes(vinculos)  
+                                    nro_vinc = nro_vinc + 1
+                                }
+                                if(vinculos.guias){
+                                    console.log('tiene guias')
+                                    dguia =  '<li class="list-group-item">GUIAS: '
+                                    for(let p = 0; p < vinculos.guias.length ; p ++){
+                                        dguia = dguia + '<a href="/documentos/guias/'+(vinculos.guias[p]).toString() +'"  class="myButton2" >'+ (vinculos.guias[p]).toString() +'</a>'
+                           
+                                    }
+                                    dguia = dguia + '</li>'
+                                    v = v + dguia
+                                    nro_vinc = nro_vinc + 1
+                                }
+                                if(vinculos.creditos){
+                                    console.log('tiene creditos')
+                                    dcredito =  '<li class="list-group-item">CREDITOS: '
+                                    for(let p = 0; p < vinculos.creditos.length ; p ++){
+                                        dcredito = dcredito + '<a href="/documentos/creditos/'+(vinculos.creditos[p]).toString() +'"  class="myButton2" >'+ (vinculos.creditos[p]).toString() +'</a>'
+                            
+                                    }
+                                    dcredito = dcredito + '</li>'
+                                    v = v + dcredito
+                                    nro_vinc = nro_vinc + 1
+                                }
+                            }
+                            h = '<div class="text-center">Vinculos <span class="badge badge-info">'+nro_vinc.toString() +'</span> <button class="btn btn-secondary" onclick="ver_vinculos()"> Ver </button><ul class="list-group" id= "lista_vinculos" style="display: None;">'
+                            k = '</ul></div>'
+                            $('.modal-body').append(a + b + c+ items_lista[0] + d + e+ f +g + h + v + k)
+                
+                            for( i = 0 ; i < resp.length ; i++ ){
+                                //console.log(resp[i][2])//items retirados
+                                desc = resp[i][0]
+                                maxim = resp[i][1]
+                                if(resp[i][2]){
+                                    ret = resp[i][2]
+                                }else{
+                                    ret = "0"
+                                }
+                                //console.log(ret)
+                                fila = (i+1).toString()
+                                
+                                ab = '<tr><td>'+desc+'</td><td id="item_max_'+fila+'">'+maxim+'</td><td><button type="button" class="btn btn-light" onclick=reducir('+fila+','+ret+') >-</button>'
+                                cd = '<span id="item_ret_'+fila+'">  '+ret+'</span><button type="button" class="btn btn-light" onclick=aumentar('+fila+','+maxim+') >+</button></td></tr>'
+                                $('#table_info1').append( ab + cd )
+                            }
+                            
+                            l = '<div><h4>Vendedor: '+ vendedor + '</h4><h4>Revisor: '+ revisor + '</h4></div>'
+                            m = '<button class="btn btn-secondary" onclick=guardar_cambios() >Guardar Cambios</button>'
+                            
+                            $('.modal-footer').append(l + m)
+                
+                        }
+                    })
+                    //
+                    
+                    
+                    $('.modal-header').append('<h4 class="modal-title">'+  tipo_doc +': ' + folio+'  |  Total: $' +monto_total+' '+'</h4><button class="btn btn-secondary" style="margin-left:5px;" onclick= dar_baja()>Dar de Baja</button><button type="button" class="close" data-dismiss="modal">&times;</button>')
+                    $('#modal_info').modal('show')// SE MUESTRA EL MODAL
+                }
+
+                function visualizar_vinc_ordenes(detalle){
+                    console.log(detalle)
+                    console.log(detalle.ordenes)
+                    cadena = '<li class="list-group-item">ORDEN DE TRABAJO: '
+                    console.log('analizando vinc a ordenes')
+                    for(let k = 0; k < (detalle.ordenes).length ; k ++){
+                        orden = JSON.parse(detalle.ordenes[k])
+                        console.log(orden)
+                        if(orden.tipo == 'dimensionado'){
+                            aux = 'DIM'
+                        }
+                        else if(orden.tipo == 'elaboracion'){
+                            aux = 'ELAB'
+                        }
+                        else if(orden.tipo == 'carpinteria'){
+                            aux = 'CARP'
+                        }
+                        else if(orden.tipo == 'pallets'){
+                            aux = 'PALL'
+                        }
+                        cadena = cadena +  '<a href="/documentos/ordenes/'+ aux.toLowerCase() +'/'+(orden.folio).toString() +'"  class="myButton2" >'+ aux + ' '+(orden.folio).toString() +'</a>'
+                                                    
+                    }
+                    cadena = cadena + '</li>'
+                    console.log(cadena)
+                    return cadena
+                }
+            
+                function ver_vinculos(){
+                    var x = document.getElementById("lista_vinculos")
+                    if (x.style.display === "none") {
+                        x.style.display = "block";
+                    } else {
+                        x.style.display = "none";
+                    }
+                }
+                
+                function ver_credito(index, tipo_doc){
+                    $('.modal-header').empty()
+                    $('.modal-body').empty()          
+                    $('.modal-footer').empty()
+                    
+                    
+                    detalle = JSON.parse(lista_datos[index][4])
+
+                
+                    a = '<div class="row"><div class="col col-sm"><table class="table" id="table_info1"><thead><td>'
+                    b = 'DESCRIPCIÓN</td><td>CANTIDAD</td></thead></table></div></div>'
+                    
+                    nro_vinc = 0 //SE ESTABLECE 0 LA CANTIDAD DE VINCULOS
+                    i = ''
+                    if(detalle.tipo_doc == 'FACTURA'){
+                        i =  '<li class="list-group-item">FACTURA: <a href="/documentos/facturas/'+(detalle.doc_ref).toString() +'"  class="myButton2" >'+(detalle.doc_ref).toString() +'</a></li>'
+                        nro_vinc = 1
+                    }
+                    else if(detalle.tipo_doc == 'BOLETA'){
+                        i =  '<li class="list-group-item">BOLETA: <a href="/documentos/boletas/'+(detalle.doc_ref).toString() +'"  class="myButton2" >'+(detalle.doc_ref).toString() +'</a></li>'
+                        nro_vinc = 1
+                    }
+                    
+                    h = '<div class="text-center">Vinculos <span class="badge badge-info">'+nro_vinc.toString()+'</span> <button class="btn btn-secondary" onclick="ver_vinculos()"> Ver </button><ul class="list-group" id= "lista_vinculos" style="display: block;">'
+                    k =  '</ul></div>'
+
+                    $('.modal-body').append(a + b + h + i + k)
+        
+                    cantidades = detalle.cantidades
+                    descripciones = detalle.descripciones
+                    //console.log(retirados)
+                    for( i = 0 ; i < cantidades.length ; i++ ){
+                        //console.log(resp[i][2])//items retirados
+                        desc = descripciones[i]
+                        maxim = cantidades[i]
+                        
+                        ab = '<tr><td>'+desc+'</td><td>'+maxim+'</td><td></tr>'
+                        $('#table_info1').append( ab )
+                    }
+                    
+                    
+                    //$('.modal-footer').append()
+                    $('.modal-header').append('<h3 class="modal-title">'+  tipo_doc +': ' + (lista_datos[index][0]).toString() +'  |  Total: $' + (detalle.monto_final).toString() +' '+'</h3><button type="button" class="close" data-dismiss="modal">&times;</button>')
+                    $('#modal_info').modal('show')// SE MUESTRA EL MODAL
+                }
+
+                function ver_orden(index, tipo_doc){
+                    $('.modal-header').empty()
+                    $('.modal-body').empty()          
+                    $('.modal-footer').empty()
+                    
+                    
+                    detalle = JSON.parse(lista_datos[index][4])
+
+                
+                    a = '<div class="row"><div class="col col-sm"><table class="table" id="table_info1"><thead><td>'
+                    b = 'DESCRIPCIÓN</td><td>CANTIDAD</td></thead></table></div></div>'
+                    
+                    nro_vinc = 0 //SE ESTABLECE 0 LA CANTIDAD DE VINCULOS
+                    i = ''
+                    if(lista_datos[index][8] == 'FACTURA'){
+                        i =  '<li class="list-group-item">FACTURA: <a href="/documentos/facturas/'+(lista_datos[index][9]).toString() +'" class="myButton2" >'+(lista_datos[index][9]).toString() +'</a></li>'
+                        nro_vinc = 1
+                    }
+                    else if(lista_datos[index][8] == 'BOLETA'){
+                        i =  '<li class="list-group-item">BOLETA: <a href="/documentos/boletas/'+(lista_datos[index][9]).toString() +'"  class="myButton2" >'+(lista_datos[index][9]).toString() +'</a></li>'
+                        nro_vinc = 1
+                    }
+                    else if(lista_datos[index][8] == 'GUIA'){
+                        i =  '<li class="list-group-item">GUIA: <a href="/documentos/guias/'+(lista_datos[index][9]).toString() +'"  class="myButton2" >'+(lista_datos[index][9]).toString() +'</a></li>'
+                        nro_vinc = 1
+                    }
+                    
+                    h = '<div class="text-center">Vinculos <span class="badge badge-info">'+nro_vinc.toString()+'</span> <button class="btn btn-secondary" onclick="ver_vinculos()"> Ver </button><ul class="list-group" id= "lista_vinculos" style="display: block;">'
+                    k =  '</ul></div>'
+
+                    $('.modal-body').append(a + b + h + i + k)
+        
+                    cantidades = detalle.cantidades
+                    descripciones = detalle.descripciones
+                    //console.log(retirados)
+                    for( i = 0 ; i < cantidades.length ; i++ ){
+                        //console.log(resp[i][2])//items retirados
+                        desc = descripciones[i]
+                        maxim = cantidades[i]
+                        
+                        ab = '<tr><td>'+desc+'</td><td>'+maxim+'</td><td></tr>'
+                        $('#table_info1').append( ab )
+                    }
+                    
+                    
+                    //$('.modal-footer').append()
+                    $('.modal-header').append('<h3 class="modal-title">'+  tipo_doc +': ' + (lista_datos[index][0]).toString() +'</h3><button type="button" class="close" data-dismiss="modal">&times;</button>')
+                    $('#modal_info').modal('show')// SE MUESTRA EL MODAL
+                }
+
+            
+            </script>
         </div>
-    </div>
+
 {% endblock %}

@@ -1,13 +1,21 @@
+from re import X
 from typing import final
 from flask import Flask, json, url_for , request , render_template, make_response , session , jsonify, flash, send_from_directory
-from flask.wrappers import Request
+from flask.sessions import SessionInterface
 import pymysql
 from werkzeug.utils import redirect, secure_filename
 from datetime import datetime
 import os
+import logging
+
+logging.basicConfig(level=logging.DEBUG , format='%(threadName)s: %(message)s')
 
 # DEFINIENDO PARAMETROS DE ARCHIVOS A RECIBIR
-UPLOAD_FOLDER = '/Users/super/Desktop/Madenco/capturador/adjuntos'
+actual = os.path.abspath(os.getcwd())
+actual = actual.replace('\\' , '/')
+
+UPLOAD_FOLDER = actual + '/respaldo_adjuntos' #se modifico
+
 ALLOWED_EXTENSIONS = {'pdf','png', 'jpg', 'jpeg'} 
 
 app = Flask(__name__)
@@ -22,7 +30,7 @@ app.secret_key="madenco"
 def home():
     if "usuario" in session:
         usuario = session["usuario"]
-        return render_template('home.html' , usuario = usuario)
+        return render_template('home.html' , usuario = usuario,tipo_usuario = session['tipo'])
     else:
         return redirect(url_for('login'))
     
@@ -40,12 +48,16 @@ def login():
         try:
             with miConexion.cursor() as cursor:
         
-                sql = "select * from usuario where nombre = %s and tipo ='porteria' "
+                sql = "select * from usuario where nombre = %s"
                 cursor.execute( sql , ( nombre )  )
                 consulta = cursor.fetchone()
                 
                 if consulta:
-                    print("usuario: "+ consulta[10] +" de porteria encontrado")
+                    if consulta[8] != 'porteria':
+                        print("usuario: "+ consulta[10] +" encontrado")
+                    else:
+                        print("usuario: "+ consulta[10] +" de porteria encontrado")
+
                     sql = "select * from usuario where nombre = %s and contraseña = %s "
                     cursor.execute( sql , ( nombre , contra )  )
                     consulta2 = cursor.fetchone()
@@ -55,12 +67,14 @@ def login():
                         #flash('You were successfully logged in')
                         print("usuario y contraseña correctos.")
                         session['usuario'] = consulta2[10]
+                        session['tipo'] = consulta2[8]
+                        session['super_usuario'] = consulta2[7]
                         return redirect(url_for("home"))
                     else:
                         flash('Contraseña invalida')
                         print("contra invalida")
                 else:
-                    flash('Nombre de usuario de porteria invalido')
+                    flash('Nombre de usuario invalido')
                     print("usuario no encontrado, en la bd")
         finally:
             miConexion.close()
@@ -79,15 +93,18 @@ def panel_clasico(fecha = None):
     if "usuario" in session:
         usuario = session["usuario"]
         fecha =  datetime.now().date()
-        return render_template('panel_clasico.html', usuario = usuario , fecha= str(fecha) )
+        return render_template('panel_clasico.html', usuario = usuario , fecha= str(fecha) ,tipo_usuario= session['tipo'])
     else:
         return redirect(url_for('home'))
 
-@app.route('/documentos')
-def documentos():
+@app.route('/documentos/<string:tipo>')
+@app.route('/documentos/<string:tipo>/<int:folio>')
+@app.route('/documentos/<string:tipo>/<string:tipo_orden>/<int:folio>')
+def documentos(tipo = None,folio = None,tipo_orden = None):
     if "usuario" in session:
         usuario = session["usuario"]
-        return render_template('documentos.html'  ,usuario = usuario)
+        fecha = datetime.now().date()
+        return render_template('documentos.html'  ,usuario = usuario, tipo = tipo,fecha = str(fecha), folio = folio,tipo_orden = tipo_orden)
     else:
         return redirect(url_for('login'))
 
@@ -98,7 +115,17 @@ def mi_cuenta():
         return render_template('cuenta.html' , usuario = usuario)
     else:
         return redirect(url_for('login'))
-    
+
+@app.route('/informes')
+def informes():
+    if "usuario" in session:
+        usuario = session["usuario"]
+        
+        return render_template('informes.html' , usuario = usuario)
+   
+    else:
+        return redirect(url_for('login'))
+  
 
 #OBTENCION DE ITEMS X NRO INTERNO
 @app.route('/obt_detalle_bol_fact/<int:interno>', methods = ['POST'])
@@ -123,11 +150,191 @@ def obt_detalle_guia_interno(interno):
     try:
         with miConexion.cursor() as cursor:
             cursor = miConexion.cursor()
-            cursor.execute("select detalle , adjuntos from guia  where interno = %s " , interno )
+            cursor.execute("select detalle , adjuntos, vinculaciones from guia  where interno = %s " , interno )
             detalle = cursor.fetchall()
             print(detalle)
             print(jsonify(detalle[0]))
             return jsonify(detalle[0])
+    finally:
+        miConexion.close()
+
+
+@app.route('/documentos/guias/folio/<int:folio>', methods = ['POST'])
+@app.route('/documentos/guias/fecha/<string:fecha1>/<string:fecha2>', methods = ['POST'])
+@app.route('/documentos/guias/cliente/<string:cliente>', methods = ['POST'])
+def obt_guia(folio = None,fecha1 = None, fecha2= None,cliente = None):
+    miConexion = pymysql.connect( host='localhost',
+            user= 'root', passwd='', db='madenco' )
+    try:
+        with miConexion.cursor() as cursor:
+            detalle = []
+            print('llego a buscar guias ..')
+            if folio:
+                print('buscando guias x folio ....')
+                sql = "SELECT folio,fecha,interno,nombre,detalle,JSON_EXTRACT(detalle,'$.monto_final'),JSON_EXTRACT(detalle,'$.estado_retiro'),JSON_EXTRACT(detalle,'$.revisor')  from guia where folio = %s"
+                cursor.execute(sql , folio )
+                detalle = cursor.fetchall()
+                print(detalle)  
+                
+            elif fecha1 and fecha2:
+                print('buscando guias x fecha ....')
+                inicio = str(fecha1) + ' 00:00'
+                fin = str(fecha2) + ' 23:59'
+                sql = "SELECT folio,fecha,interno,nombre,detalle,JSON_EXTRACT(detalle,'$.monto_final'),JSON_EXTRACT(detalle,'$.estado_retiro'),JSON_EXTRACT(detalle,'$.revisor')  from guia where fecha between %s and %s"
+                cursor.execute( sql, (inicio, fin) )
+                detalle = cursor.fetchall()
+                print(detalle)
+            elif cliente:
+                print('buscando guias x nombre cliente ...')
+                sql = "SELECT folio,fecha,interno,nombre,detalle,JSON_EXTRACT(detalle,'$.monto_final'),JSON_EXTRACT(detalle,'$.estado_retiro'),JSON_EXTRACT(detalle,'$.revisor')  from guia where nombre like '%" + cliente +"%'"
+                cursor.execute( sql )
+                detalle = cursor.fetchall()
+                print(detalle)
+            return jsonify(detalle)
+    finally:
+        miConexion.close()
+@app.route('/documentos/boletas/folio/<int:folio>', methods = ['POST'])
+@app.route('/documentos/boletas/fecha/<string:fecha1>/<string:fecha2>', methods = ['POST'])
+@app.route('/documentos/boletas/cliente/<string:cliente>', methods = ['POST'])
+def obt_boleta(folio = None,fecha1 = None, fecha2= None,cliente = None):
+    miConexion = pymysql.connect( host='localhost',
+            user= 'root', passwd='', db='madenco' )
+    try:
+        with miConexion.cursor() as cursor:
+            detalle = []
+            print('llego a buscar guias ..')
+            if folio:
+                print('buscando boleta x folio ....')
+                sql = "SELECT nro_boleta,fecha,interno,'Cliente Boleta',adjuntos,monto_total,estado_retiro,revisor,vinculaciones,adjuntos from nota_venta where nro_boleta = %s"
+                cursor.execute(sql , folio )
+                detalle = cursor.fetchall()
+                #print(detalle)  
+                
+            elif fecha1 and fecha2:
+                print('buscando boleta x fecha ....')
+                inicio = str(fecha1) + ' 00:00'
+                fin = str(fecha2) + ' 23:59'
+                sql = "SELECT nro_boleta,fecha,interno,'Cliente Boleta',adjuntos,monto_total,estado_retiro,revisor,vinculaciones,adjuntos from nota_venta where folio = 0 and ( fecha between %s and %s) "
+                cursor.execute( sql, (inicio, fin) )
+                detalle = cursor.fetchall()
+                #print(detalle)
+            #TODAS LOS CLIENTES SON CLIENTES BOLETAS.
+            '''elif cliente:
+                print('buscando boleta x nombre cliente ...')
+                sql = "SELECT nro_boleta,fecha,interno,'Cliente Boleta',adjuntos,monto_total,estado_retiro,revisor from nota_venta where folio = 0 and ( fecha between %s and %s) " 
+                cursor.execute( sql )
+                detalle = cursor.fetchall()
+                print(detalle)'''
+
+            return jsonify(detalle)
+    finally:
+        miConexion.close()
+
+@app.route('/documentos/facturas/folio/<int:folio>', methods = ['POST'])
+@app.route('/documentos/facturas/fecha/<string:fecha1>/<string:fecha2>', methods = ['POST'])
+@app.route('/documentos/facturas/cliente/<string:cliente>', methods = ['POST'])
+def obt_factura(folio = None,fecha1 = None, fecha2= None,cliente = None):
+    miConexion = pymysql.connect( host='localhost',
+            user= 'root', passwd='', db='madenco' )
+    try:
+        with miConexion.cursor() as cursor:
+            detalle = []
+            print('llego a buscar facturas ..')
+            if folio:
+                print('buscando factura x folio ....')
+                sql = "SELECT folio,fecha,interno,nombre,adjuntos,monto_total,estado_retiro,revisor,vinculaciones,adjuntos from nota_venta where folio = %s"
+                cursor.execute(sql , folio )
+                detalle = cursor.fetchall()
+                #print(detalle)  
+                
+            elif fecha1 and fecha2:
+                print('buscando factura x fecha ....')
+                inicio = str(fecha1) + ' 00:00'
+                fin = str(fecha2) + ' 23:59'
+                sql = "SELECT folio,fecha,interno,nombre,adjuntos,monto_total,estado_retiro,revisor,vinculaciones,adjuntos from nota_venta where nro_boleta = 0 and ( fecha between %s and %s) "
+                cursor.execute( sql, (inicio, fin) )
+                detalle = cursor.fetchall()
+                #print(detalle)
+            elif cliente:
+                print('buscando factura x nombre cliente ...')
+                sql = "SELECT folio,fecha,interno,nombre,adjuntos,monto_total,estado_retiro,revisor,vinculaciones,adjuntos from nota_venta where nro_boleta = 0 and nombre like  '%" + cliente +"%'" 
+                cursor.execute( sql )
+                detalle = cursor.fetchall()
+                #print(detalle)
+
+            return jsonify(detalle)
+    finally:
+        miConexion.close()
+
+@app.route('/documentos/creditos/folio/<int:folio>', methods = ['POST'])
+@app.route('/documentos/creditos/fecha/<string:fecha1>/<string:fecha2>', methods = ['POST'])
+@app.route('/documentos/creditos/cliente/<string:cliente>', methods = ['POST'])
+def obt_creditos(folio = None,fecha1 = None, fecha2= None,cliente = None):
+    miConexion = pymysql.connect( host='localhost',
+            user= 'root', passwd='', db='madenco' )
+    try:
+        with miConexion.cursor() as cursor:
+            detalle = []
+            print('llego a buscar creditos ..')
+            if folio:
+                print('buscando creditos x folio ....')
+                sql = "SELECT folio,fecha,interno,nombre,detalle,JSON_EXTRACT(detalle, '$.monto_final'),JSON_EXTRACT(detalle, '$.observacion'),JSON_EXTRACT(detalle, '$.motivo'),JSON_EXTRACT(detalle, '$.tipo_doc'),JSON_EXTRACT(detalle, '$.doc_ref') from nota_credito where folio = %s"
+                cursor.execute(sql , folio )
+                detalle = cursor.fetchall()
+                #print(detalle)  
+                
+            elif fecha1 and fecha2:
+                print('buscando creditos x fecha ....')
+                inicio = str(fecha1) + ' 00:00'
+                fin = str(fecha2) + ' 23:59'
+                sql = "SELECT folio,fecha,interno,nombre,detalle,JSON_EXTRACT(detalle, '$.monto_final'),JSON_EXTRACT(detalle, '$.observacion'),JSON_EXTRACT(detalle, '$.motivo'),JSON_EXTRACT(detalle, '$.tipo_doc'),JSON_EXTRACT(detalle, '$.doc_ref')  from nota_credito where fecha between %s and %s "
+                cursor.execute( sql, (inicio, fin) )
+                detalle = cursor.fetchall()
+                #print(detalle)
+            elif cliente:
+                print('buscando creditos x nombre cliente ...')
+                sql = "SELECT folio,fecha,interno,nombre,detalle,JSON_EXTRACT(detalle, '$.monto_final'),JSON_EXTRACT(detalle, '$.observacion'),JSON_EXTRACT(detalle, '$.motivo'),JSON_EXTRACT(detalle, '$.tipo_doc'),JSON_EXTRACT(detalle, '$.doc_ref') from nota_credito where nombre like  '%" + cliente +"%'" 
+                cursor.execute( sql )
+                detalle = cursor.fetchall()
+                #print(detalle)
+
+            return jsonify(detalle)
+    finally:
+        miConexion.close()
+
+@app.route('/documentos/ordenes/<string:tipo>/folio/<int:folio>', methods = ['POST'])
+@app.route('/documentos/ordenes/<string:tipo>/fecha/<string:fecha1>/<string:fecha2>', methods = ['POST'])
+@app.route('/documentos/ordenes/<string:tipo>/cliente/<string:cliente>', methods = ['POST'])
+def obt_ordenes(folio = None,tipo = None,fecha1 = None, fecha2= None,cliente = None):
+    miConexion = pymysql.connect( host='localhost',
+            user= 'root', passwd='', db='madenco' )
+    try:
+        with miConexion.cursor() as cursor:
+            detalle = []
+            print('llego a buscar orden de: ' + tipo + ' ...')
+            if folio:
+                print('buscando orden x folio ....')
+                sql = "SELECT nro_orden,fecha_orden,telefono,nombre,detalle, JSON_EXTRACT(detalle, '$.creado_por'),despacho,JSON_EXTRACT(extra, '$.estado'),tipo_doc ,nro_doc from orden_"+ tipo +" where nro_orden = " + str(folio) 
+                cursor.execute(sql ) 
+                detalle = cursor.fetchall()
+                #print(detalle)  
+                
+            elif fecha1 and fecha2:
+                print('buscando orden x fecha ....')
+                inicio = str(fecha1) + ' 00:00'
+                fin = str(fecha2) + ' 23:59'
+                sql = "SELECT nro_orden,fecha_orden,telefono,nombre,detalle, JSON_EXTRACT(detalle, '$.creado_por'),despacho,JSON_EXTRACT(extra, '$.estado'),tipo_doc ,nro_doc from orden_"+ tipo +" where fecha_orden between '"+ inicio + "' and  '" + fin +"'"
+                cursor.execute( sql )
+                detalle = cursor.fetchall()
+                #print(detalle)
+            elif cliente:
+                print('buscando orden x nombre cliente ...')
+                sql = "SELECT nro_orden,fecha_orden,telefono,nombre,detalle, JSON_EXTRACT(detalle, '$.creado_por'),despacho,JSON_EXTRACT(extra, '$.estado'),tipo_doc ,nro_doc  from orden_"+ tipo +" where nombre like  '%" + cliente + "%'" 
+                cursor.execute( sql )
+                detalle = cursor.fetchall()
+                #print(detalle)
+
+            return jsonify(detalle)
     finally:
         miConexion.close()
 
@@ -225,8 +432,7 @@ def upload_file(folio = None,tipo_doc = None,interno = None):
                     category="error"
                 )
 
-            
-    
+        
 @app.route('/descargar/<name>')
 def download_file(name):
     return send_from_directory(app.config["UPLOAD_FOLDER"], name)
@@ -243,11 +449,11 @@ def busqueda_docs_fecha(inicio,fin):
             cursor.execute( sql1 , ( inicio , fin )  )
             boletas = cursor.fetchall()
 
-            sql2 = "select interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro from nota_venta where nro_boleta = 0 and  fecha between %s and %s "
+            sql2 = "select interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro,revisor from nota_venta where nro_boleta = 0 and  fecha between %s and %s "
             cursor.execute(sql2 , ( inicio , fin ) )
             facturas = cursor.fetchall()
 
-            sql3 = "select folio, interno,JSON_EXTRACT(detalle, '$.vendedor'),JSON_EXTRACT(detalle, '$.monto_final'), JSON_EXTRACT(detalle, '$.estado_retiro')  from guia where fecha between %s and %s "
+            sql3 = "select folio, interno,JSON_EXTRACT(detalle, '$.vendedor'),JSON_EXTRACT(detalle, '$.monto_final'), JSON_EXTRACT(detalle, '$.estado_retiro'),vinculaciones  from guia where fecha between %s and %s "
             cursor.execute(sql3 , ( inicio , fin ) )
             guias = cursor.fetchall()
             return (boletas, facturas, guias)
@@ -278,13 +484,7 @@ def obt_docs(fecha):
 def actualizar_nota_venta():
     dato = request.json
     estado = None
-    if dato[0]:
-        print("retirado completo")
-        estado = "COMPLETO"
-        
-    else:
-        print("retirado incompleto")
-        estado = "INCOMPLETO"
+    print(dato[0])
     print(dato[1])
     print(dato[2])
 
@@ -292,8 +492,12 @@ def actualizar_nota_venta():
             user= 'root', passwd='', db='madenco' )
     try:
         with miConexion.cursor() as cursor:
+            # Se actualiza el estado de retiro
             sql = 'update nota_venta set estado_retiro = %s where interno = %s'
-            cursor.execute(sql , (estado , dato[2]) )
+            cursor.execute(sql , (dato[0] , dato[2]) )
+            # Se actualiza el revisor
+            sql = 'update nota_venta set revisor = %s where interno = %s'
+            cursor.execute(sql , (session['usuario'] , dato[2]) )
             #miConexion.commit()
             # Crea la consulta
             sql = 'update item set retirado = %s where codigo = %s and interno = %s'
@@ -312,14 +516,7 @@ def actualizar_nota_venta():
 def actualizar_guia():
     dato = request.json
     print(dato)
-    estado = None
-    if dato[0]:
-        print("retirado completo")
-        estado = "COMPLETO"
-        
-    else:
-        print("retirado incompleto")
-        estado = "INCOMPLETO"
+    
     nuevo = json.dumps(dato[1]) #items retirados
     nuevo = nuevo[1: len(nuevo) - 1]
 
@@ -328,35 +525,84 @@ def actualizar_guia():
     try:
         with miConexion.cursor() as cursor:
     
-            sql = "SELECT JSON_EXTRACT( detalle , '$.retirado') from guia where interno = %s"
+            '''sql = "SELECT JSON_EXTRACT( detalle , '$.retirado') from guia where interno = %s"
             cursor.execute(sql, dato[2])
             registro = cursor.fetchone()
-            print(registro)
-            if registro[0]:  #Si existe registro del retiro anteriormente
-                print("tiene registrado retiros, comenzando a actualizar...")
-                sql = "SELECT JSON_REPLACE(detalle, '$.retirado', JSON_ARRAY("+ nuevo +"),'$.estado_retiro', %s) from guia where interno = %s"
-                cursor.execute(sql, (estado , dato[2] ))
-                resultado = cursor.fetchone()
-                print(resultado)
+            print(registro)'''
 
-            else:
-                print("no tiene registrado registros, creando registros ...")
-                sql = "SELECT JSON_INSERT( detalle , '$.retirado', JSON_ARRAY("+ nuevo +"),'$.estado_retiro', %s ) from guia where interno = %s"
-                cursor.execute(sql, (estado , dato[2] ))
+            #if registro[0]:#Si existe registro del retiro y revisor anteriormente **MODIFICADO ya que el agente capturador, otorga dichos parametros en la creacion
+            print("tiene registrado retiros, comenzando a actualizar...")
+            sql = "SELECT JSON_REPLACE(detalle, '$.retirado', JSON_ARRAY("+ nuevo +"),'$.estado_retiro', %s,'$.revisor', %s ) from guia where interno = %s"
+            cursor.execute(sql, (dato[0], session['usuario'] , dato[2] ))
+            resultado = cursor.fetchone()
+            print(resultado)
+
+            '''else:
+                print("no tiene registrado retiros y revisor, creando registros ...")
+                sql = "SELECT JSON_INSERT( detalle , '$.retirado', JSON_ARRAY("+ nuevo +"),'$.estado_retiro', %s, '$.revisor', %s ) from guia where interno = %s"
+                cursor.execute(sql, (estado , session['usuario'], dato[2] ))
                 resultado = cursor.fetchone()
-                print(resultado)
+                print(resultado)'''
 
             sql2 = "UPDATE guia SET detalle = %s where interno = %s"
             cursor.execute(sql2 , (resultado, dato[2]))
+
             resultado2 = cursor.fetchone()
             print(resultado2)
             miConexion.commit()
 
-            return jsonify(data = True, message = "Cantidad retirada actualizada guia")
+            return jsonify(data = True, message = "GUIA: Cantidad retirada actualizada")
     except:
-        return jsonify(data = False, message = "Error al actualizar cantidades. Consulte a su operador")
+        return jsonify(data = False, message = "GUIA: Error al actualizar cantidades. Consulte a su operador")
     finally:
         miConexion.close()
 
+@app.route('/estadisticas/generales' , methods=['POST'] )
+def obt_estadistica_general():
+    x_ventas = [0,0,0]
+    x_guias = [0,0,0] #[NO RETIRADO, INCOMPLETO, COMPLETO]
+    #CONSULTAS
+    miConexion = pymysql.connect( host='localhost',
+        user= 'root', passwd='', db='madenco' )
+    try:
+        with miConexion.cursor() as cursor:
+            cursor.execute("SELECT estado_retiro, count(*) FROM nota_venta group by estado_retiro") #SE AGREGO EL ESTADO RETIRADO
+            ventas = cursor.fetchall()
+            print(ventas)
+            if ventas != ():
+                for item in ventas:
+                    if item[0] == 'NO RETIRADO':
+                        x_ventas[0] = item[1]
+                    elif item[0] == 'INCOMPLETO':
+                        x_ventas[1] = item[1]
+                    elif item[0] == 'COMPLETO':
+                        x_ventas[2] = item[1]
+                    print(x_ventas)
+
+            cursor.execute("SELECT JSON_EXTRACT(detalle, '$.estado_retiro'), count(*) FROM guia group by JSON_EXTRACT(detalle, '$.estado_retiro')") #SE AGREGO EL ESTADO RETIRADO
+            guias = cursor.fetchall()
+            print(guias)
+            if guias != ():
+                
+                for item in guias:
+                    print(item)
+                    if item[0] == '"NO RETIRADO"':
+                        x_guias[0] = item[1]
+                    elif item[0] == '"INCOMPLETO"':
+                        x_guias[1] = item[1]
+                    elif item[0] == '"COMPLETO"':
+                        x_guias[2] = item[1]
+                    print(x_guias)
+
+            return jsonify( estado = True, ventas = x_ventas,
+                            guias = x_guias)
+    
+    finally:
+        miConexion.close() 
+
+
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0' ,port=5000, debug=True )
+    
+    app.run(host='0.0.0.0' ,port=5000, debug= True )
+

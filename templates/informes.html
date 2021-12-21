@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+
+{% block encabezado %}  
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/informes.css') }}">
+{% endblock %}
+
+{% block contenido %}
+<div class="text-center">
+  <h1>informes</h1>
+    <div class="box-chart">
+      <div class="chart">
+          <canvas id="myChart" width="200" height="200"></canvas>
+      </div>
+      <div class="chart">
+        <canvas id="myChart2" width="200" height="200"></canvas>
+    </div>
+
+    </div>
+</div>
+    
+      
+
+    <script>
+      var ventas = [0,0,0]
+      var guias = [0,0,0]
+    </script>
+    
+<script>
+    var ctx = document.getElementById('myChart');
+    var ctx2 = document.getElementById('myChart2');
+    let lista = []
+
+    for(let i = 0 ; i < ventas.length ; i++ ){
+      suma = ventas[i] + guias[i]
+      lista.push(suma)
+    }
+    console.log(lista)
+    const data = {
+        labels: [
+          'NO RETIRADO',
+          'PARCIALIZADO',
+          'RETIRADO'
+        ],
+        datasets: [{
+          label: 'My First Dataset',
+          data: lista ,
+          backgroundColor: [
+            'rgb(255, 99, 132)',
+            'rgb(75, 192, 192)',
+            'rgb(255, 205, 86)'
+          ]
+        }]
+      };
+
+    var chart = new Chart(ctx, {
+      data: data,
+      type: 'polarArea'
+      });
+    var chart2 = new Chart(ctx2, {
+      data: data,
+      type: 'pie'
+      });
+
+</script>
+
+<script>
+ 
+  function addData(chart, data, datasetIndex) {
+    console.log('nuevos datos...')
+    chart.data.datasets[datasetIndex].data = data;
+    chart.update();
+ }
+
+  setInterval( function () {
+    $.ajax({
+      url: '/estadisticas/generales',
+      type : 'post',
+      success: function(resp) {
+        console.log(resp)
+        if(resp.estado){
+          lista = []
+          for(let i = 0 ; i < resp.ventas.length ; i++ ){
+            suma = resp.ventas[i] + resp.guias[i]
+            lista.push(suma)
+          }
+          console.log(lista)
+          addData(chart,lista, 0)
+          addData(chart2,lista, 0)
+        }
+        else{
+          console.log('error')
+        }
+        // do something with the return value here if you like
+      }
+    });
+
+  }  , 2000);
+ 
+ 
+
+</script>
+{% endblock %}

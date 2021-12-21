@@ -2,9 +2,18 @@
 
 {% block encabezado %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/panel_clasico.css') }}">
+    <script src="{{ url_for('static', filename='scripts/panel_clasico.js') }}"></script>
 {% endblock %}
 
 {% block contenido %}
+    <script>
+        var tipo_usuario = ''
+    </script>
+    {% if tipo_usuario %}
+        <script>
+            tipo_usuario = '{{tipo_usuario}}'
+        </script>
+    {% endif %}
     
     <p id="titulo_panel">Panel clasico del {{fecha}}</p>
     <div class="box_superior">
@@ -19,6 +28,8 @@
                 <li class="list-group-item"><span class='circle_green'></span><p>: Asociada a orden de trabajo.</p></li>
                 <li class="list-group-item"><span class='circle_yellow'></span><p>: Asociada a guia.</p></li>
                 <li class="list-group-item"><button class="boton_v1" id="btn_simbologia" onclick="alert('hola')"></button><span style="display: inline-block;"><p> : Documento retirado completamente.</p></span></li>
+                <li class="list-group-item"><button class="boton_v1" id="btn_simbologia2" onclick="alert('hola')"></button><span style="display: inline-block;"><p> : Documento retirado Parcial (Incompleto).</p></span></li>
+                
             </ul>
         </div>
         <div id="my_div">
@@ -26,7 +37,7 @@
 
         <script>
             function ver_simbologia(){
-                console.log(lista_fact_adj)
+                //console.log(lista_fact_adj)
                 var x = document.getElementById("simb")
                 if (x.style.display === "none") {
                     x.style.display = "inline-block";
@@ -63,11 +74,7 @@
             </div>
         </div>
     </div>
-    <script>
-        var lista_bol_adj  = []
-        var lista_fact_adj = []
-    </script>
-
+    
     <div id="mensaje">
     </div>
     <!-- CUERPO DEL PANEL CLASICO  -->
@@ -80,362 +87,9 @@
         setInterval(function(){
                 nueva_fecha = $("#fecha_docs").val()
                 $('#body_panel').load("/obtener/docs/"+ nueva_fecha );
-             }, 4000) /* time in milliseconds (ie 2 seconds)*/
+             }, 4000) /* time in milliseconds (ie 2 seconds) , TIEMPO PARA ACTUALIZAR EL BODY-PANEL CON LOS DATOS RECIENTES.*/
         
-        function handler(e) {
-            //alert(e.target.value);
-            let nueva_fecha = e.target.value
-            cargar_body(nueva_fecha)
-            
-        }
-        function cargar_body(x_fecha){
-            $('#titulo_panel').text("Panel clasico del " + x_fecha)
-            $('#body_panel').load("/obtener/docs/"+ x_fecha);
-        }
-
-
-
-
-        function ver_bol_fact(interno,tipo_doc,folio,monto_total,vendedor){ 
-            $('.modal-header').empty()
-            $('.modal-body').empty()          
-            $('.modal-footer').empty()
-            
-            $.ajax({
-                url: "/obt_detalle_bol_fact/" + interno,
-                type: "POST",
-                success: function(resp){
-                    //console.log(resp)
-                    respuesta = resp
-                    a = '<div class="row"><div class="col col-sm"><table class="table" id="table_info1"><thead><td>'
-                    b = 'DESCRIPCIÓN</td><td>CANTIDAD</td><td>CANTIDAD RETIRADA</td></thead></table></div></div>'
-                    items_lista = buscar_adj(tipo_doc,folio)
-                    //ADJUNTOS
-                    c = '<div class="text-center">Documentos Adjuntos <span class="badge badge-info"> '+items_lista[1].toString()+'</span> <button class="btn btn-secondary" onclick="ver_adjuntos()">Ver</button><div class="list-group" id= "lista_adjuntos" style="display:None;">'
-                    d ='</div><div class="input-group" style="margin-top:10px;"><div class="custom-file"><input type="file" accept="image/*" class="custom-file-input"'
-                    e='id="archivo" required><label class="custom-file-label" for="nombre_archivo">'
-                    f ='Elegir o Tomar Foto</label></div><div class="input-group-append"><button class="btn btn-outline-secondary" type="button"'
-                    g ='onclick = adjuntar('+folio+','+'"'+ tipo_doc +'"'+','+interno+') >Adjuntar</button></div></div>'
-                    //VINCULOS
-                    h = '<div class="text-center">Vinculos <span class="badge badge-info"> 3</span> <button class="btn btn-secondary" onclick="ver_vinculos()"> Ver </button><ul class="list-group" id= "lista_vinculos" style="display: None;">'
-                    i =  '<li class="list-group-item">Orden de: </li>'
-                    j =  '<li class="list-group-item">Guia: </li>'
-                    k =  '<li class="list-group-item">Nota de crédito: </li> </ul></div>'
-                    $('.modal-body').append(a + b + c+ items_lista[0] + d + e+ f +g + h + i+j+k)
-
-                    for( i = 0 ; i < resp.length ; i++ ){
-                        //console.log(resp[i][2])//items retirados
-                        desc = resp[i][0]
-                        maxim = resp[i][1]
-                        if(resp[i][2]){
-                            ret = resp[i][2]
-                        }else{
-                            ret = "0"
-                        }
-                        
-                        console.log(ret)
-                        fila = (i+1).toString()
-                        
-                        ab = '<tr><td>'+desc+'</td><td id="item_max_'+fila+'">'+maxim+'</td><td><button type="button" class="btn btn-light" onclick=reducir('+fila+','+ret+') >-</button>'
-                        cd = '<span id="item_ret_'+fila+'">  '+ret+'</span><button type="button" class="btn btn-light" onclick=aumentar('+fila+','+maxim+') >+</button></td></tr>'
-                        $('#table_info1').append( ab + cd )
-                    }
-                    
-                    i = '<h4>Vendedor: '+ vendedor + '</h4>'
-                    j = '<button class="btn btn-secondary" onclick=guardar_cambios() >Guardar Cambios</button>'
-                    
-                    $('.modal-footer').append(i + j)
-        
-                }
-            })
-            //
-            
-            
-            $('.modal-header').append('<h4 class="modal-title">'+  tipo_doc +': ' + folio+'  |  Total: $' +monto_total+' '+'</h4><button class="btn btn-secondary" style="margin-left:5px;" onclick= dar_baja()>Dar de Baja</button><button type="button" class="close" data-dismiss="modal">&times;</button>')
-            $('#modal_info').modal('show')// SE MUESTRA EL MODAL
-        }
-        function ver_guia(interno,tipo_doc,folio,monto_total,vendedor){ 
-            $('.modal-header').empty()
-            $('.modal-body').empty()          
-            $('.modal-footer').empty()
-            
-            $.ajax({
-                url: "/obt_detalle_guia/" + interno,
-                type: "POST",
-                success: function(resp){
-                    console.log(resp)
-                    detalle = JSON.parse(resp[0])
-                    console.log(detalle) 
-                    adj = JSON.parse(resp[1])
-                    console.log(adj)                
-                    a = '<div class="row"><div class="col col-sm"><table class="table" id="table_info1"><thead><td>'
-                    b = 'DESCRIPCIÓN</td><td>CANTIDAD</td><td>CANTIDAD RETIRADA</td></thead></table></div></div>'
-                    items_lista = ''
-                    nro_adj = 0
-                    if(adj != null){
-                        for(let j = 0; j < adj.length ; j++ ){
-                        items_lista = items_lista + '<a href="/descargar/'+adj[j]+'">'+'<button type="button" class="list-group-item list-group-item-action">'+ adj[0] + '</button></a>'
-                        nro_adj = nro_adj + 1
-                    }
-                    }
-                    c = '<div class="text-center">Documentos Adjuntos<span class="badge badge-info"> '+nro_adj.toString()+'</span><div class="list-group" id= "lista_adjuntos">'                   
-                    d ='</div><div class="input-group" style="margin-top:10px;"><div class="custom-file"><input type="file" accept="image/*" class="custom-file-input"'
-                    e='id="archivo" required><label class="custom-file-label" for="nombre_archivo">'
-                    f ='Elegir o Tomar Foto</label></div><div class="input-group-append"><button class="btn btn-outline-secondary" type="button"'
-                    g ='onclick = adjuntar('+folio+','+'"'+ tipo_doc +'"'+','+interno+') >Adjuntar</button></div>'
-
-                    $('.modal-body').append(a + b + c+ items_lista+ d + e+ f +g)
-                    cantidades = detalle.cantidades
-                    descripciones = detalle.descripciones
-                    retirados = detalle.retirado
-                    //console.log(retirados)
-                    for( i = 0 ; i < cantidades.length ; i++ ){
-                        //console.log(resp[i][2])//items retirados
-                        desc = descripciones[i]
-                        maxim = cantidades[i]
-                        if(retirados){
-                            console.log("existe cantidad retirada")
-                            ret = retirados[i]
-                        }else{ 
-                            console.log("no existe retirado")
-                            ret = "0" 
-                        }
-                        fila = (i+1).toString()
-                        
-                        ab = '<tr><td>'+desc+'</td><td id="item_max_'+fila+'">'+maxim+'</td><td><button type="button" class="btn btn-light" onclick=reducir('+fila+','+ret+') >-</button>'
-                        cd = '<span id="item_ret_'+fila+'">  '+ret+'</span><button type="button" class="btn btn-light" onclick=aumentar('+fila+','+maxim+') >+</button></td></tr>'
-                        $('#table_info1').append( ab + cd )
-                    }
-                    
-                    i = '<h4>Vendedor: '+ vendedor + '</h4>'
-                    j = '<button class="btn btn-secondary" onclick=guardar_cambios_2('+ interno.toString()+') >Guardar Cambios</button>'
-                    
-                    $('.modal-footer').append(i + j)
     
-                }
-            })
-            //
-            
-            
-            $('.modal-header').append('<h4 class="modal-title">'+  tipo_doc +': ' + folio+'  |  Total: $' +monto_total+' '+'</h4><button class="btn btn-secondary" style="margin-left:5px;" onclick= dar_baja()>Dar de Baja</button><button type="button" class="close" data-dismiss="modal">&times;</button>')
-            $('#modal_info').modal('show')// SE MUESTRA EL MODAL
-        }
-        function buscar_adj(tipo,folio){
-            let found = []
-            if(tipo== "BOLETA"){
-                found = lista_bol_adj.find(element => element[0] == folio )
-            }
-            else if(tipo=="FACTURA"){
-                 found = lista_fact_adj.find(element => element[0] == folio )
-                }
-            console.log(found)
-            items_lista = ""
-            nro_adj = 0
-            if(found[1] != null){
-                console.log('tiene adjuntos')
-                lista = found[1]
-                for(let i = 0 ; i < lista.length ; i++){
-                    items_lista = items_lista + '<a href="/descargar/'+lista[i]+'">'+'<button type="button" class="list-group-item list-group-item-action">'+ lista[i] + '</button></a>'
-                    nro_adj = nro_adj + 1
-                }
-            }
-            return [items_lista, nro_adj ]
-        }
-        function aumentar(fila,max){
-            // max: hace referencia a la cantidad maxima que se puede retirar. En este caso la cantidad total de items comprados.
-            ret = $('#item_ret_'+fila).text()
-            
-            cant = parseInt(ret) + 1
-            if(cant <= max){
-                $('#item_ret_'+fila).text('  '+ cant.toString() + '  ')
-            }else{
-                alert('No puede retirar más de lo comprado.')
-            }
-        }
-        function reducir(fila,min){
-            // min: hace referencia a la ultima cantidad retirada que se registro en el sistema.
-            ret = $('#item_ret_'+fila).text()
-            
-            cant = parseInt(ret) - 1
-            if(cant >= 0){
-                $('#item_ret_'+fila).text('  '+ cant.toString() + '  ')
-            }else{
-                alert('No puede retirar menos de 0.')
-            }
-        }
-        function dar_baja(){
-            var tabla = document.getElementById('table_info1')
-            for (var i = 1, row; row = tabla.rows[i]; i++) {
-                maximo = row.cells[1].innerText
-                maximo = parseInt(maximo)
-                $('#item_ret_'+i.toString()).text('  '+ maximo.toString() + '  ')
-                //retirada = $('#item_ret_'+ i.toString()).text()
-                //console.log(retirada)
-            }
-            console.log(lista_bol_adj)
-        }
-        function guardar_cambios(){
-            var tabla = document.getElementById('table_info1')
-            datos = []
-            estado = true
-            interno = respuesta[0][4]
-            for (var i = 1, row; row = tabla.rows[i]; i++) {
-                item = []
-                comprada = $('#item_max_'+ i.toString()).text()
-                retirada = $('#item_ret_'+ i.toString()).text()
-                console.log("Fila: "+comprada + " - " + retirada)
-                if(parseInt(comprada) != parseInt(retirada)){
-                    estado = false
-                }
-                cod = respuesta[i - 1][3]
-                
-                item.push(parseInt(retirada))
-                item.push(cod) 
-                item.push(interno)
-                datos.push(item)
-                console.log(item)
-            }
-            if(estado){
-                console.log('Retirado completamente detectado')
-            }else{console.log("Retirado incompleto detectado")}
-            new_dato = []
-            new_dato.push(estado)
-            new_dato.push(datos)
-            new_dato.push(interno)
-            console.log(new_dato)
-            
-            $.ajax({
-                url: "/actualizar/nota_venta/item",
-                type: "POST",
-                data: JSON.stringify(new_dato),
-                contentType: "application/json; charset=utf-8",
-                success: function(resp){
-                    if(resp.data){
-                        console.log(resp.message)
-                        $('#modal_info').modal('hide')// SE OCULTA EL MODAL
-                        $('#mensaje').empty()
-                        tipo_alert = 'success'
-                        $('#mensaje').append('<div class="alert alert-'+tipo_alert+'"><button type="button" class="close" data-dismiss="alert">&times;</button>'+resp.message+'</div>')
-
-                        nueva_fecha = $("#fecha_docs").val()
-                        cargar_body(nueva_fecha)
-
-                    }else{
-                        $('#mensaje').empty()
-                        tipo_alert = 'warning'
-                        $('#mensaje').append('<div class="alert alert-'+tipo_alert+'"><button type="button" class="close" data-dismiss="alert">&times;</button>'+resp.message+'</div>')
-                    }
-                }
-                
-            })
-        
-        }
-        
-        function guardar_cambios_2(interno){//ACTUALIZAR
-            console.log("guardar 2")
-            var tabla = document.getElementById('table_info1')
-            datos = []
-            estado = true
-            retirados = []
-            for (var i = 1, row; row = tabla.rows[i]; i++) {
-                item = []
-                comprada = $('#item_max_'+ i.toString()).text()
-                retirada = $('#item_ret_'+ i.toString()).text()
-                console.log("Fila: "+comprada + " - " + retirada)
-                if(parseInt(comprada) != parseInt(retirada)){
-                    estado = false
-                }
-                cod = "xx"
-                
-                retirados.push(parseInt(retirada))
-                
-            }
-            if(estado){
-                console.log('Retirado completamente detectado')
-            }else{console.log("Retirado incompleto detectado")}
-            console.log(retirados)
-            new_dato = []
-            new_dato.push(estado)
-            new_dato.push(retirados)
-            new_dato.push(interno)
-            console.log(new_dato)
-            $.ajax({
-                url: "/actualizar/guia/item",
-                type: "POST",
-                data: JSON.stringify(new_dato),
-                contentType: "application/json; charset=utf-8",
-                success: function(resp){
-                    if(resp.data){
-                        console.log(resp.message)
-                        nueva_fecha = $("#fecha_docs").val()
-                        cargar_body(nueva_fecha)
-                    }else{
-                        console-log(resp.message)
-                    }
-                }
-                
-            })
-        }
-        function adjuntar(folio,tipo_doc,interno){
-            console.log("adjuntando archivo")
-            
-            var fd = new FormData();
-            var files = $('#archivo')[0].files;
-            
-            // Check file selected or not
-            if(files.length > 0 ){
-                fd.append('file',files[0]);
-    
-                $.ajax({
-                    url: '/subir/'+ folio.toString()+ '/'+ tipo_doc+ '/' + interno.toString(),
-                    type: 'post',
-                    data: fd,
-                    contentType: false,
-                    processData: false,
-                    success: function(resp){
-                        if(resp.category == "success"){
-                            $('#modal_info').modal('hide')// SE OCULTA EL MODAL
-                            $('#mensaje').empty()
-                            tipo_alert = 'success'
-                            $('#mensaje').append('<div class="alert alert-'+tipo_alert+'"><button type="button" class="close" data-dismiss="alert">&times;</button>'+resp.message+'</div>')
-
-                            nueva_fecha = $("#fecha_docs").val()
-                            cargar_body(nueva_fecha)
-                        //$('#lista_adjuntos').append('<button type="button" class="list-group-item list-group-item-action">' + response.data+'<i class="fas fa-check-circle"></i></button>')
-                        }else{
-                            $('#mensaje').empty()
-                            tipo_alert = 'warning'
-                            $('#mensaje').append('<div class="alert alert-'+tipo_alert+'"><button type="button" class="close" data-dismiss="alert">&times;</button>'+resp.message+'</div>')
-                    
-                        }
-                    },
-                });
-            }else{
-                alert("Please select a file.");
-            }
-           
-            
-            
-        }
-
-        function ver_adjuntos(){
-            var x = document.getElementById("lista_adjuntos")
-            if (x.style.display === "none") {
-                x.style.display = "block";
-            } else {
-                x.style.display = "none";
-            }
-        }
-
-        function ver_vinculos(){
-            var x = document.getElementById("lista_vinculos")
-            if (x.style.display === "none") {
-                x.style.display = "block";
-            } else {
-                x.style.display = "none";
-            }
-        }
-        
     </script>
 
 {% endblock %}
