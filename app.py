@@ -15,6 +15,7 @@ actual = os.path.abspath(os.getcwd())
 actual = actual.replace('\\' , '/')
 
 UPLOAD_FOLDER = actual + '/respaldo_adjuntos' #se modifico
+print(UPLOAD_FOLDER)
 
 ALLOWED_EXTENSIONS = {'pdf','png', 'jpg', 'jpeg'} 
 
@@ -120,12 +121,23 @@ def mi_cuenta():
 def informes():
     if "usuario" in session:
         usuario = session["usuario"]
-        
-        return render_template('informes.html' , usuario = usuario)
+        fecha = datetime.fromisoformat('2021-05-10')
+        fecha = fecha.date()
+        return render_template('informes.html' , usuario = usuario, fecha = str(fecha), tipo_usuario= session['tipo'])
    
     else:
         return redirect(url_for('login'))
-  
+
+@app.route('/herramientas')
+def herramientas():
+    if "usuario" in session:
+        usuario = session["usuario"]
+        fecha = datetime.fromisoformat('2021-05-10')
+        fecha = fecha.date()
+        return render_template('herramientas.html' , usuario = usuario, fecha = str(fecha))
+    else:
+        return redirect(url_for('login'))
+         
 
 #OBTENCION DE ITEMS X NRO INTERNO
 @app.route('/obt_detalle_bol_fact/<int:interno>', methods = ['POST'])
@@ -473,7 +485,7 @@ def obt_docs(fecha):
         l_bol = documentos[0]
         l_fact = documentos[1]
         l_guia = documentos[2]
-        print(l_guia)
+        #print(l_guia)
         return render_template('body_panel.html' , boletas = l_bol,facturas = l_fact,guias = l_guia)
     else:
         return render_template('no_db_con.html')
@@ -600,9 +612,38 @@ def obt_estadistica_general():
     finally:
         miConexion.close() 
 
+@app.route('/estadisticas/pendientes/<string:fecha1>/<string:fecha2>')
+def obt_pendientes(fecha1 = None , fecha2 = None):
 
+    inicio = str(fecha1) + ' 00:00'
+    fin = str(fecha2) + ' 23:59'
+    print('Pendientes Desde: '+ inicio + ' - Hasta: ' + fin)
+    miConexion = pymysql.connect( host='localhost',
+        user= 'root', passwd='', db='madenco' )
+    try:
+        with miConexion.cursor() as cursor:
+            sql1= "SELECT interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro,revisor from nota_venta where (estado_retiro = 'NO RETIRADO' OR estado_retiro = 'INCOMPLETO' ) and nro_boleta = 0 AND (fecha between '"+ inicio +"' and '"+ fin +"')"
+            cursor.execute(sql1) 
+            facturas = cursor.fetchall()
+
+            sql2 = "SELECT interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro,revisor from nota_venta where (estado_retiro = 'NO RETIRADO' OR estado_retiro = 'INCOMPLETO' ) and folio = 0 AND (fecha between '"+ inicio +"' and '"+ fin +"')"
+            cursor.execute(sql2) 
+            boletas = cursor.fetchall()
+
+            sql3 = "SELECT folio, interno,JSON_EXTRACT(detalle, '$.vendedor'),JSON_EXTRACT(detalle, '$.monto_final'), JSON_EXTRACT(detalle, '$.estado_retiro'),vinculaciones from guia where ( JSON_EXTRACT(detalle, '$.estado_retiro') = 'NO RETIRADO' OR JSON_EXTRACT(detalle, '$.estado_retiro') = 'INCOMPLETO' ) AND (fecha between '"+ inicio +"' and '"+ fin +"')"
+            cursor.execute(sql3)
+            guias = cursor.fetchall()
+
+            #datos = []
+            #datos.append(boletas)
+            #datos.append(facturas)
+            #datos.append(guias)
+            return render_template('body_panel.html' , boletas = boletas,facturas = facturas ,guias = guias)
+
+    finally:
+        miConexion.close() 
 
 if __name__ == '__main__':
     
-    app.run(host='0.0.0.0' ,port=5000, debug= True )
+    app.run(host='0.0.0.0' ,port=4000, debug= True )
 

@@ -1,4 +1,7 @@
 app_madenco
 __pycache__
+build
+dist
 Consultas_SQL.txt
 estructura_modal.txt
+server.ico

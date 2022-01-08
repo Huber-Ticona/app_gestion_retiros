@@ -32,6 +32,7 @@
                 
             </ul>
         </div>
+
         <div id="my_div">
         </div>
 
@@ -87,8 +88,11 @@
         setInterval(function(){
                 nueva_fecha = $("#fecha_docs").val()
                 $('#body_panel').load("/obtener/docs/"+ nueva_fecha );
-             }, 4000) /* time in milliseconds (ie 2 seconds) , TIEMPO PARA ACTUALIZAR EL BODY-PANEL CON LOS DATOS RECIENTES.*/
-        
+             }, 3000) /* time in milliseconds (ie 2 seconds) , TIEMPO PARA ACTUALIZAR EL BODY-PANEL CON LOS DATOS RECIENTES.*/
+        function cargar_body(x_fecha){
+        $('#titulo_panel').text("Panel clasico del " + x_fecha)
+        $('#body_panel').load("/obtener/docs/"+ x_fecha);
+    }
     
     </script>
 

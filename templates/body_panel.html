@@ -6,7 +6,7 @@
         var lista_fact_vinc = []
     </script>
     <div class="col col-sm-4">
-        <p>BOLETAS</p>
+        <p>BOLETAS <span class="badge badge-pill badge-primary">{{boletas|length}}</span></p>
         <div class="box">
             {% if boletas %}
             
@@ -86,6 +86,7 @@
             <p>No se encontraron boletas para la fecha actual</p>
             {% endif %}
         </div>
+        <!-- 
         <div>
             <h2>Pendientes <span class="badge badge-info"> 50</span></h2>
             <button class="btn btn-secondary" onclick="ver_bol_pendientes()">Ver</button>
@@ -106,11 +107,12 @@
                 }
             </script>
         </div>
+    -->
            
              
     </div>
     <div class="col col-sm-4">
-        <P>FACTURAS</P>
+        <P>FACTURAS <span class="badge badge-pill badge-primary">{{facturas|length}}</span></p>
         <div class="box">
             {% if facturas %}
             {% for item in facturas %}
@@ -191,7 +193,7 @@
         </div> 
     </div>
     <div class="col col-sm-4">
-        <p>GUÍAS</p>
+        <p>GUÍAS <span class="badge badge-pill badge-primary">{{guias|length}}</span></p>
         <div class="box">
             {% if guias != () %}
                                                                

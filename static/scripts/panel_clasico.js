@@ -6,10 +6,10 @@ function handler(e) {
     cargar_body(nueva_fecha)
     
 }
-function cargar_body(x_fecha){
+/*function cargar_body(x_fecha){ MULTIUSO, ENTRE PANEL CLASICO Y INFORMES
     $('#titulo_panel').text("Panel clasico del " + x_fecha)
     $('#body_panel').load("/obtener/docs/"+ x_fecha);
-}
+}*/
 
 function ver_bol_fact(interno,tipo_doc,folio,monto_total,vendedor,revisor){ 
     $('.modal-header').empty()
@@ -304,7 +304,7 @@ function dar_baja(){
     var tabla = document.getElementById('table_info1')
     for (var i = 1, row; row = tabla.rows[i]; i++) {
         maximo = row.cells[1].innerText
-        maximo = parseInt(maximo)
+        maximo = parseFloat(maximo)
         $('#item_ret_'+i.toString()).val(maximo)
         //retirada = $('#item_ret_'+ i.toString()).text()
         //console.log(retirada)
@@ -315,7 +315,7 @@ function dar_baja(){
     console.log(lista_fact_adj) */ 
 
 }
-function guardar_cambios(){
+function guardar_cambios(){ //ACTUALIZAR BOLETA O FACTURA
     var tabla = document.getElementById('table_info1')
     datos = []
     estado = true // checkea si se actualiza el documento o no.
@@ -368,6 +368,7 @@ function guardar_cambios(){
     }
 
     if(estado){
+        
         new_dato = []
         new_dato.push(estado_retiro)
         new_dato.push(datos)
@@ -403,7 +404,7 @@ function guardar_cambios(){
 
 }
 
-function guardar_cambios_2(interno){//ACTUALIZAR
+function guardar_cambios_2(interno){//ACTUALIZAR GUIA
     console.log("guardar 2")
     var tabla = document.getElementById('table_info1')
     datos = []
@@ -480,8 +481,8 @@ function guardar_cambios_2(interno){//ACTUALIZAR
                     tipo_alert = 'warning'
                     $('#mensaje').append('<div class="alert alert-'+tipo_alert+'"><button type="button" class="close" data-dismiss="alert">&times;</button>'+resp.message+'</div>')
 
-                    nueva_fecha = $("#fecha_docs").val()
-                    cargar_body(nueva_fecha)
+                    //nueva_fecha = $("#fecha_docs").val()
+                    //cargar_body(nueva_fecha)
                 }
             }
             
