@@ -11,7 +11,7 @@
             {% if boletas %}
             
             {% for item in boletas %}
-            <button class="boton_v1" id = "btn_{{item[4]}}" onclick='ver_bol_fact({{item[0]}},"BOLETA",{{item[4]}},{{item[3]}},"{{item[1]}}","{{item[9]}}")'>
+            <button class="boton_v1" id = "btn_{{item[4]}}" onclick='ver_bol_fact({{item[0]}},"BOLETA",{{item[4]}},{{item[3]}},"{{item[1]}}","{{item[9]}}","{{item[11]|safe}}")'>
                 <div class="btn_cont" ><span class="number_btn" id="btn_span_{{item[4]}}">{{ item[4] }}
                     <!-- SE ANALIZA EL ESTADO ACTUAL DEL DOCUMENTO (NO RETIRADO, INCOMPLETO O COMPLETO) -->
                     {% if item[8] %}
@@ -31,11 +31,12 @@
                     {% endif%}
                 </span>
                 <!-- SE ANALIZA LOS VINCULOS ASOCIADOS -->
+                    <div class="badge_box" id="{{item[4]}}">
+                    </div>
                     {% if item[6] != None  %}
                     
                         {% set vinculos = item[6]|safe %}
-                        <div class="badge_box" id="{{item[4]}}">
-                        </div>
+                       
                         <script>
                             vinc = {{vinculos}}
                             //console.log(vinc)
@@ -79,7 +80,16 @@
                         lista_bol_adj.push(adj)
                     </script>
                     {% endif %}
-                    
+
+            <!-- SE ANALIZA SI ES DESPACHO A DOMICILIO -->
+            {% if item[10] != None %}
+            <script>
+                desp = "{{ item[10]|safe }}"
+                if(desp == "SI"){
+                    $('#{{item[4]}}').append("<span class='circle_brown'></span>")
+                }
+            </script>
+            {% endif %}
                 
             {% endfor %}
             {% else %}
@@ -117,7 +127,7 @@
             {% if facturas %}
             {% for item in facturas %}
             
-            <button class="boton_v1" id="btn_{{item[2]}}" onclick= 'ver_bol_fact({{item[0]}},"FACTURA",{{item[2]}},{{item[3]}},"{{item[1]}}","{{item[9]}}")'>
+            <button class="boton_v1" id="btn_{{item[2]}}" onclick= 'ver_bol_fact({{item[0]}},"FACTURA",{{item[2]}},{{item[3]}},"{{item[1]}}","{{item[9]}}","{{item[11]|safe}}")'>
                 <div class="btn_cont">
                     <span class="number_btn">{{ item[2] }}
                         <!-- SE ANALIZA EL ESTADO ACTUAL DEL DOCUMENTO (NO RETIRADO, INCOMPLETO O COMPLETO) -->
@@ -183,6 +193,18 @@
                     lista_fact_adj.push(adj)
                 </script>
                 {% endif %}
+
+                <!-- SE ANALIZA SI ES DESPACHO A DOMICILIO -->
+                {% if item[10] != None %}
+                <div class="badge_box" id="{{item[0]}}">
+                </div>
+                <script>
+                    desp = "{{ item[10]|safe }}"
+                    if(desp == "SI"){
+                        $('#{{item[0]}}').append("<span class='circle_brown'></span>")
+                    }
+                </script>
+                {% endif %}
                 
             </button>
             {% endfor %}
@@ -237,7 +259,29 @@
                                 console.log(vinc.ordenes[i].tipo + ' - ' + vinc.ordenes[i].folio)
                             }*/
                         }
-                        
+                    </script>
+                    {% endif %}
+                    
+                    {% if item[6] != None %}
+                    <div class="badge_box" id="{{item[0]}}">
+                    </div>
+                    <script>
+                        vinc = {{ item[6]|safe }}
+                        console.log(vinc)
+                        if (vinc == "BOLETA" || vinc == 'FACTURA') {
+                            $('#{{item[0]}}').append("<span class='circle_blue'></span>")
+                        }
+                    </script>
+                    {% endif %}
+                    <!-- SE ANALIZA SI ES DESPACHO A DOMICILIO -->
+                    {% if item[7] != None %}
+                    <div class="badge_box" id="{{item[0]}}">
+                    </div>
+                    <script>
+                        desp = "{{ item[7]|safe }}"
+                        if(desp == "SI"){
+                            $('#{{item[0]}}').append("<span class='circle_brown'></span>")
+                        }
                     </script>
                     {% endif %}
                     <!-- SE ANALIZA LOS DOCUMENTOS ADJUNTOS: implementado al visualizar el modal -->

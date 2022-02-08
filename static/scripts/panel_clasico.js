@@ -11,7 +11,7 @@ function handler(e) {
     $('#body_panel').load("/obtener/docs/"+ x_fecha);
 }*/
 
-function ver_bol_fact(interno,tipo_doc,folio,monto_total,vendedor,revisor){ 
+function ver_bol_fact(interno,tipo_doc,folio,monto_total,vendedor,revisor,fecha){ 
     $('.modal-header').empty()
     $('.modal-body').empty()          
     $('.modal-footer').empty()
@@ -102,13 +102,14 @@ function ver_bol_fact(interno,tipo_doc,folio,monto_total,vendedor,revisor){
     })
     //
     
-    h1 = '<h4 class="modal-title">'+  tipo_doc +': ' + folio+'  |  Total: $' +monto_total+' '+'</h4>'
+    h1 = '<div id="left-header"><h4 class="modal-title">'+  tipo_doc +': ' + folio+'  |  Total: $' +monto_total+' '+'</h4></div>'
     h2 = ''
     if(tipo_usuario == 'porteria'){
         h2 = '<button class="btn btn-secondary" style="margin-left:5px;" onclick= dar_baja()>Dar de Baja</button>' }
     h3 ='<button type="button" class="close" data-dismiss="modal">&times;</button>'
     $('.modal-header').append(h1 + h2 + h3)
-        
+    aux_fecha = obtener_fecha(fecha)
+    $('#left-header').append('<h4>Fecha: '+ aux_fecha +'</h4>') 
     
     $('#modal_info').modal('show')// SE MUESTRA EL MODAL
 }
@@ -116,7 +117,6 @@ function ver_guia(interno,tipo_doc,folio,monto_total,vendedor){
     $('.modal-header').empty()
     $('.modal-body').empty()          
     $('.modal-footer').empty()
-    
     $.ajax({
         url: "/obt_detalle_guia/" + interno,
         type: "POST",
@@ -126,7 +126,8 @@ function ver_guia(interno,tipo_doc,folio,monto_total,vendedor){
             console.log(detalle) 
             adj = JSON.parse(resp[1])
             vinc = JSON.parse(resp[2])
-            console.log(adj)                
+            aux_fecha = obtener_fecha(resp[3]) 
+            $('#left-header').append('<h4>Fecha: '+ aux_fecha +'</h4>')            
             a = '<div class="row"><div class="col col-sm"><table class="table" id="table_info1"><thead><td>'
             b = 'DESCRIPCIÓN</td><td>CANTIDAD</td><td>CANTIDAD RETIRADA</td></thead></table></div></div>'
 
@@ -206,7 +207,7 @@ function ver_guia(interno,tipo_doc,folio,monto_total,vendedor){
     })
     //
     
-    h1 = '<h4 class="modal-title">'+  tipo_doc +': ' + folio+'  |  Total: $' +monto_total+' '+'</h4>'
+    h1 = '<div id="left-header"><h4 class="modal-title">'+  tipo_doc +': ' + folio+'  |  Total: $' +monto_total+' '+'</h4></div>'
     h2 = ''
     if(tipo_usuario == 'porteria'){
         h2 = '<button class="btn btn-secondary" style="margin-left:5px;" onclick= dar_baja()>Dar de Baja</button>' }
@@ -547,5 +548,18 @@ function ver_vinculos(){
         x.style.display = "block";
     } else {
         x.style.display = "none";
+    }
+}
+function obtener_fecha(fecha){
+    let date = new Date(fecha)
+
+    let day = date.getDate()
+    let month = date.getMonth() + 1
+    let year = date.getFullYear()
+
+    if(month < 10){
+    return `${day}-0${month}-${year}`
+    }else{
+    return `${day}-${month}-${year}`
     }
 }

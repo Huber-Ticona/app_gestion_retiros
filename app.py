@@ -121,9 +121,12 @@ def mi_cuenta():
 def informes():
     if "usuario" in session:
         usuario = session["usuario"]
-        fecha = datetime.fromisoformat('2021-05-10')
-        fecha = fecha.date()
-        return render_template('informes.html' , usuario = usuario, fecha = str(fecha), tipo_usuario= session['tipo'])
+        fecha1 = datetime.fromisoformat('2021-01-01')
+        fecha1 = fecha1.date()
+        fecha2 = datetime.now()
+        fecha2 = fecha2.date()
+
+        return render_template('informes.html' , usuario = usuario, fecha1 = str(fecha1), fecha2 = str(fecha2) ,tipo_usuario= session['tipo'])
    
     else:
         return redirect(url_for('login'))
@@ -162,7 +165,7 @@ def obt_detalle_guia_interno(interno):
     try:
         with miConexion.cursor() as cursor:
             cursor = miConexion.cursor()
-            cursor.execute("select detalle , adjuntos, vinculaciones from guia  where interno = %s " , interno )
+            cursor.execute("select detalle , adjuntos, vinculaciones, fecha from guia  where interno = %s " , interno )
             detalle = cursor.fetchall()
             print(detalle)
             print(jsonify(detalle[0]))
@@ -329,7 +332,7 @@ def obt_ordenes(folio = None,tipo = None,fecha1 = None, fecha2= None,cliente = N
                 sql = "SELECT nro_orden,fecha_orden,telefono,nombre,detalle, JSON_EXTRACT(detalle, '$.creado_por'),despacho,JSON_EXTRACT(extra, '$.estado'),tipo_doc ,nro_doc from orden_"+ tipo +" where nro_orden = " + str(folio) 
                 cursor.execute(sql ) 
                 detalle = cursor.fetchall()
-                #print(detalle)  
+                print(detalle)  
                 
             elif fecha1 and fecha2:
                 print('buscando orden x fecha ....')
@@ -457,15 +460,15 @@ def busqueda_docs_fecha(inicio,fin):
         with miConexion.cursor() as cursor:
         #cursor = miConexion.cursor()
 
-            sql1 = "select interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro,revisor from nota_venta where folio = 0 and fecha between %s and %s "
+            sql1 = "select interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro,revisor,despacho,fecha from nota_venta where folio = 0 and fecha between %s and %s "
             cursor.execute( sql1 , ( inicio , fin )  )
             boletas = cursor.fetchall()
 
-            sql2 = "select interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro,revisor from nota_venta where nro_boleta = 0 and  fecha between %s and %s "
+            sql2 = "select interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro,revisor ,despacho,fecha from nota_venta where nro_boleta = 0 and  fecha between %s and %s "
             cursor.execute(sql2 , ( inicio , fin ) )
             facturas = cursor.fetchall()
 
-            sql3 = "select folio, interno,JSON_EXTRACT(detalle, '$.vendedor'),JSON_EXTRACT(detalle, '$.monto_final'), JSON_EXTRACT(detalle, '$.estado_retiro'),vinculaciones  from guia where fecha between %s and %s "
+            sql3 = "select folio, interno,JSON_EXTRACT(detalle, '$.vendedor'),JSON_EXTRACT(detalle, '$.monto_final'), JSON_EXTRACT(detalle, '$.estado_retiro'),vinculaciones, JSON_EXTRACT(detalle, '$.tipo_doc'),despacho from guia where fecha between %s and %s "
             cursor.execute(sql3 , ( inicio , fin ) )
             guias = cursor.fetchall()
             return (boletas, facturas, guias)
@@ -622,15 +625,15 @@ def obt_pendientes(fecha1 = None , fecha2 = None):
         user= 'root', passwd='', db='madenco' )
     try:
         with miConexion.cursor() as cursor:
-            sql1= "SELECT interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro,revisor from nota_venta where (estado_retiro = 'NO RETIRADO' OR estado_retiro = 'INCOMPLETO' ) and nro_boleta = 0 AND (fecha between '"+ inicio +"' and '"+ fin +"')"
+            sql1= "SELECT interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro,revisor, despacho,fecha from nota_venta where (estado_retiro = 'NO RETIRADO' OR estado_retiro = 'INCOMPLETO' ) and nro_boleta = 0 AND (fecha between '"+ inicio +"' and '"+ fin +"')"
             cursor.execute(sql1) 
             facturas = cursor.fetchall()
 
-            sql2 = "SELECT interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro,revisor from nota_venta where (estado_retiro = 'NO RETIRADO' OR estado_retiro = 'INCOMPLETO' ) and folio = 0 AND (fecha between '"+ inicio +"' and '"+ fin +"')"
+            sql2 = "SELECT interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro,revisor,despacho,fecha from nota_venta where (estado_retiro = 'NO RETIRADO' OR estado_retiro = 'INCOMPLETO' ) and folio = 0 AND (fecha between '"+ inicio +"' and '"+ fin +"')"
             cursor.execute(sql2) 
             boletas = cursor.fetchall()
 
-            sql3 = "SELECT folio, interno,JSON_EXTRACT(detalle, '$.vendedor'),JSON_EXTRACT(detalle, '$.monto_final'), JSON_EXTRACT(detalle, '$.estado_retiro'),vinculaciones from guia where ( JSON_EXTRACT(detalle, '$.estado_retiro') = 'NO RETIRADO' OR JSON_EXTRACT(detalle, '$.estado_retiro') = 'INCOMPLETO' ) AND (fecha between '"+ inicio +"' and '"+ fin +"')"
+            sql3 = "SELECT folio, interno,JSON_EXTRACT(detalle, '$.vendedor'),JSON_EXTRACT(detalle, '$.monto_final'), JSON_EXTRACT(detalle, '$.estado_retiro'),vinculaciones , JSON_EXTRACT(detalle, '$.tipo_doc'),despacho from guia where ( JSON_EXTRACT(detalle, '$.estado_retiro') = 'NO RETIRADO' OR JSON_EXTRACT(detalle, '$.estado_retiro') = 'INCOMPLETO' ) AND (fecha between '"+ inicio +"' and '"+ fin +"')"
             cursor.execute(sql3)
             guias = cursor.fetchall()
 

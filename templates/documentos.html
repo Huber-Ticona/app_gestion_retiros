@@ -128,6 +128,19 @@
             </table>
 
             <script>
+                function obtener_fecha(fecha){
+                    let date = new Date(fecha)
+                
+                    let day = date.getDate()
+                    let month = date.getMonth() + 1
+                    let year = date.getFullYear()
+                
+                    if(month < 10){
+                    return `${day}-0${month}-${year}`
+                    }else{
+                    return `${day}-${month}-${year}`
+                    }
+                }
                 function buscar_doc(parametro){
                     $('#mensaje').empty()
                     $('#cuerpo-tabla').empty()
@@ -210,8 +223,7 @@
                                     lista_datos = resp // SE GUARDA EN UNA VARIABLE GLOBAL
                                     for(let i = 0; i < resp.length ; i++){
                                     let item = resp[i]
-                                    let d = new Date(item[1])
-                                    let datestring = d.getDate()  + "-" + (d.getMonth()+1) + "-" + d.getFullYear() //+ " " + d.getHours() + ":" + d.getMinutes();
+                                    let datestring = obtener_fecha(item[1]) //+ " " + d.getHours() + ":" + d.getMinutes();
                                     
                                     xfolio = '<td class="text-center">'+ (item[0]).toString() +'</td>'
                                     xfecha = '<td class="text-center">'+ datestring +'</td>'
@@ -221,7 +233,7 @@
                                     }
                                     xnombre = '<td class="text-center">'+ item[3]+ '</td>'  
                                     xdetalle = '<td class="text-center"><button class="btn btn-secondary" onclick = "ver_detalle('+ i.toString() +')"> Ver Detalle </button></td>'  
-                                    xtotal = '<td class="text-center">'+ (item[5]).toString() +'</td>'
+                                    xtotal = '<td class="text-center">'+ (item[5])+'</td>' // causaba error el .tostring cuando se buscaba x folio.
                                     xestado = '<td class="text-center">'+ (item[6]) +'</td>'
                                     xrevisor = '<td class="text-center">'+ (item[7]) +'</td>'
                                        
@@ -469,7 +481,7 @@
                     console.log(cadena)
                     return cadena
                 }
-            
+                
                 function ver_vinculos(){
                     var x = document.getElementById("lista_vinculos")
                     if (x.style.display === "none") {
