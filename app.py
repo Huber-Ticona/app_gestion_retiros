@@ -1,5 +1,3 @@
-from re import X
-from typing import final
 from flask import Flask, json, url_for , request , render_template, make_response , session , jsonify, flash, send_from_directory
 from flask.sessions import SessionInterface
 import pymysql
@@ -165,7 +163,7 @@ def obt_detalle_guia_interno(interno):
     try:
         with miConexion.cursor() as cursor:
             cursor = miConexion.cursor()
-            cursor.execute("select detalle , adjuntos, vinculaciones, fecha from guia  where interno = %s " , interno )
+            cursor.execute("select detalle , adjuntos, vinculaciones, fecha, historial_retiro from guia  where interno = %s " , interno )
             detalle = cursor.fetchall()
             print(detalle)
             print(jsonify(detalle[0]))
@@ -460,11 +458,11 @@ def busqueda_docs_fecha(inicio,fin):
         with miConexion.cursor() as cursor:
         #cursor = miConexion.cursor()
 
-            sql1 = "select interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro,revisor,despacho,fecha from nota_venta where folio = 0 and fecha between %s and %s "
+            sql1 = "select interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro,revisor,despacho,fecha,historial_retiro from nota_venta where folio = 0 and fecha between %s and %s "
             cursor.execute( sql1 , ( inicio , fin )  )
             boletas = cursor.fetchall()
 
-            sql2 = "select interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro,revisor ,despacho,fecha from nota_venta where nro_boleta = 0 and  fecha between %s and %s "
+            sql2 = "select interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro,revisor ,despacho,fecha,historial_retiro from nota_venta where nro_boleta = 0 and  fecha between %s and %s "
             cursor.execute(sql2 , ( inicio , fin ) )
             facturas = cursor.fetchall()
 
@@ -499,9 +497,22 @@ def obt_docs(fecha):
 def actualizar_nota_venta():
     dato = request.json
     estado = None
+    print('----- datos update -------')
     print(dato[0])
     print(dato[1])
     print(dato[2])
+    print('----- datos historial --------')
+    #historial
+    fecha = datetime.now()
+    detalle = {
+        "revisor": session['usuario'],
+        "fecha": str(fecha.strftime("%d-%m-%Y %H:%M:%S")),
+        "descripciones":dato[3],
+        "antes": dato[4],
+        "despues": dato[5]
+    }
+    historial = json.dumps(detalle)
+    print(historial)
 
     miConexion = pymysql.connect( host='localhost',
             user= 'root', passwd='', db='madenco' )
@@ -519,6 +530,32 @@ def actualizar_nota_venta():
             cursor.executemany(sql , dato[1] )
             # connection is not autocommit by default. So you must commit to save
             # your changes.
+
+            #historial
+            sql = 'select historial_retiro,interno from nota_venta where interno = %s'
+            cursor.execute(sql, dato[2])
+            lista = cursor.fetchone()
+            if lista[0] == None:
+                print('--------creando historial ----------')
+                lista_historial = []
+                lista_historial.append(historial)                
+                detalle2 = {
+                    "lista_historial" : lista_historial
+                }
+                nuevo_historial = json.dumps(detalle2)
+                sql = 'update nota_venta set historial_retiro = %s where interno = %s'
+                cursor.execute(sql , ( nuevo_historial , dato[2]) )
+            else:
+                print('--------actualizando historial ----------')
+                aux_historial = json.loads(lista[0])
+                try:
+                    aux_historial['lista_historial'].append(historial)
+                    nuevo_historial = json.dumps(aux_historial)
+                    sql = 'update nota_venta set historial_retiro = %s where interno = %s'
+                    cursor.execute(sql , ( nuevo_historial , dato[2]) )
+                except KeyError:
+                    print(' llave "lista_historial" no encontrado. Historial NO creado')
+                    
             miConexion.commit()
             return jsonify(data = True, message = "Cantidad retirada actualizada")
     except:
@@ -530,8 +567,23 @@ def actualizar_nota_venta():
 @app.route('/actualizar/guia/item', methods=['POST'])
 def actualizar_guia():
     dato = request.json
-    print(dato)
-    
+    print('----- datos update -------')
+    print(dato[0])
+    print(dato[1])
+    print(dato[2])
+    print('----- datos historial --------')
+    #historial
+    fecha = datetime.now()
+    detalle = {
+        "revisor": session['usuario'],
+        "fecha": str(fecha.strftime("%d-%m-%Y %H:%M:%S")),
+        "descripciones":dato[3],
+        "antes": dato[4],
+        "despues": dato[5]
+    }
+    historial = json.dumps(detalle)
+    print(historial)
+
     nuevo = json.dumps(dato[1]) #items retirados
     nuevo = nuevo[1: len(nuevo) - 1]
 
@@ -550,7 +602,7 @@ def actualizar_guia():
             sql = "SELECT JSON_REPLACE(detalle, '$.retirado', JSON_ARRAY("+ nuevo +"),'$.estado_retiro', %s,'$.revisor', %s ) from guia where interno = %s"
             cursor.execute(sql, (dato[0], session['usuario'] , dato[2] ))
             resultado = cursor.fetchone()
-            print(resultado)
+            #print(resultado)
 
             '''else:
                 print("no tiene registrado retiros y revisor, creando registros ...")
@@ -562,8 +614,31 @@ def actualizar_guia():
             sql2 = "UPDATE guia SET detalle = %s where interno = %s"
             cursor.execute(sql2 , (resultado, dato[2]))
 
-            resultado2 = cursor.fetchone()
-            print(resultado2)
+            # ACTUALIZANDO EL HISTORIAL
+            sql = 'select historial_retiro,interno from guia where interno = %s'
+            cursor.execute(sql, dato[2])
+            lista = cursor.fetchone()
+            if lista[0] == None:
+                print('--------creando historial ----------')
+                lista_historial = []
+                lista_historial.append(historial)                
+                detalle2 = {
+                    "lista_historial" : lista_historial
+                }
+                nuevo_historial = json.dumps(detalle2)
+                sql = "UPDATE guia SET historial_retiro = %s where interno = %s"
+                cursor.execute(sql , ( nuevo_historial , dato[2]) )
+            else:
+                print('--------actualizando historial ----------')
+                aux_historial = json.loads(lista[0])
+                try:
+                    aux_historial['lista_historial'].append(historial)
+                    nuevo_historial = json.dumps(aux_historial)
+                    sql = "UPDATE guia SET historial_retiro = %s where interno = %s"
+                    cursor.execute(sql , ( nuevo_historial , dato[2]) )
+                except KeyError:
+                    print(' llave "lista_historial" no encontrado. Historial NO creado')
+
             miConexion.commit()
 
             return jsonify(data = True, message = "GUIA: Cantidad retirada actualizada")
@@ -625,11 +700,11 @@ def obt_pendientes(fecha1 = None , fecha2 = None):
         user= 'root', passwd='', db='madenco' )
     try:
         with miConexion.cursor() as cursor:
-            sql1= "SELECT interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro,revisor, despacho,fecha from nota_venta where (estado_retiro = 'NO RETIRADO' OR estado_retiro = 'INCOMPLETO' ) and nro_boleta = 0 AND (fecha between '"+ inicio +"' and '"+ fin +"')"
+            sql1= "SELECT interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro,revisor, despacho,fecha,historial_retiro from nota_venta where (estado_retiro = 'NO RETIRADO' OR estado_retiro = 'INCOMPLETO' ) and nro_boleta = 0 AND (fecha between '"+ inicio +"' and '"+ fin +"')"
             cursor.execute(sql1) 
             facturas = cursor.fetchall()
 
-            sql2 = "SELECT interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro,revisor,despacho,fecha from nota_venta where (estado_retiro = 'NO RETIRADO' OR estado_retiro = 'INCOMPLETO' ) and folio = 0 AND (fecha between '"+ inicio +"' and '"+ fin +"')"
+            sql2 = "SELECT interno,vendedor,folio,monto_total,nro_boleta,nombre,vinculaciones,adjuntos,estado_retiro,revisor,despacho,fecha,historial_retiro from nota_venta where (estado_retiro = 'NO RETIRADO' OR estado_retiro = 'INCOMPLETO' ) and folio = 0 AND (fecha between '"+ inicio +"' and '"+ fin +"')"
             cursor.execute(sql2) 
             boletas = cursor.fetchall()
 

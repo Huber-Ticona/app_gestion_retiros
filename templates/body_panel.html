@@ -2,8 +2,12 @@
     <script>
         var lista_bol_adj  = []
         var lista_fact_adj = []
+
         var lista_bol_vinc = []
         var lista_fact_vinc = []
+
+        var bol_historial = []
+        var fact_historial = []
     </script>
     <div class="col col-sm-4">
         <p>BOLETAS <span class="badge badge-pill badge-primary">{{boletas|length}}</span></p>
@@ -88,6 +92,18 @@
                 if(desp == "SI"){
                     $('#{{item[4]}}').append("<span class='circle_brown'></span>")
                 }
+            </script>
+            {% endif %}
+            <!-- SE ANALIZA EL HISTORIAL -->
+            {% if item[12] != None %}
+            {% set aux_historial = item[12]|safe %}
+            <script>
+                x_historial = {{aux_historial}}
+                
+                referencia = [{{item[4]}} , x_historial]
+                bol_historial.push(referencia)
+                //console.log(referencia)
+
             </script>
             {% endif %}
                 
@@ -205,6 +221,18 @@
                     }
                 </script>
                 {% endif %}
+                <!-- SE ANALIZA EL HISTORIAL -->
+                {% if item[12] != None %}
+                {% set aux_historial = item[12]|safe %}
+                <script>
+                    x_historial = {{aux_historial}}
+                    
+                    referencia = [{{item[2]}} , x_historial]
+                    fact_historial.push(referencia)
+                    //console.log(referencia)
+
+                </script>
+                {% endif %}
                 
             </button>
             {% endfor %}
@@ -267,7 +295,7 @@
                     </div>
                     <script>
                         vinc = {{ item[6]|safe }}
-                        console.log(vinc)
+                        //console.log(vinc)
                         if (vinc == "BOLETA" || vinc == 'FACTURA') {
                             $('#{{item[0]}}').append("<span class='circle_blue'></span>")
                         }

@@ -40,13 +40,16 @@
 
         <script>
             function ver_simbologia(){
-                //console.log(lista_fact_adj)
+                console.log(bol_historial)
+
+                console.log(fact_historial)
                 var x = document.getElementById("simb")
                 if (x.style.display === "none") {
                     x.style.display = "inline-block";
                 } else {
                     x.style.display = "none";
                 }
+               
             }
             /*setInterval(function(){
                 nueva_fecha = $("#fecha_docs").val()
@@ -57,6 +60,8 @@
         </script>
     </div>
 
+    <!--<table><thead><tr><th>Descripcion</th><th>Antes</th><th>Despues</th></tr></thead><tbody><tr><td>msd</td><td>100</td><td>200</td></tr></tbody></table>
+    -->
     <!-- The Modal -->
     <div class="modal" id="modal_info">
         <div class="modal-dialog">
@@ -64,6 +69,7 @@
 
                 <!-- Modal Header -->
                 <div class="modal-header">
+                    
                 </div>
 
                 <!-- Modal body -->

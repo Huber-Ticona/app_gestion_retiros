@@ -20,9 +20,10 @@ function ver_bol_fact(interno,tipo_doc,folio,monto_total,vendedor,revisor,fecha)
         url: "/obt_detalle_bol_fact/" + interno,
         type: "POST",
         success: function(resp){
-            //console.log(resp)
+            console.log(resp)
             respuesta = resp
-            a = '<div class="row"><div class="col col-sm"><table class="table" id="table_info1"><thead><td>'
+            
+            a = '<div class="row"><div class="col col-sm"><table id="table_info1"><thead><td>'
             b = 'DESCRIPCIÓN</td><td>CANTIDAD</td><td>CANTIDAD RETIRADA</td></thead></table></div></div>'
             items_lista = buscar_adj(tipo_doc,folio)
             //ADJUNTOS
@@ -69,7 +70,10 @@ function ver_bol_fact(interno,tipo_doc,folio,monto_total,vendedor,revisor,fecha)
             }
             h = '<div class="text-center">Vinculos <span class="badge badge-info">'+nro_vinc.toString() +'</span> <button class="btn btn-secondary" onclick="ver_vinculos()"> Ver </button><ul class="list-group" id= "lista_vinculos" style="display: None;">'
             k = '</ul></div>'
-            $('.modal-body').append(a + b + c+ items_lista[0] + d + e+ f +g + h + v + k)
+            items_historial = buscar_historial(tipo_doc,folio)
+            y = '<div >Historial de retiros <span class="badge badge-info">'+(items_historial[1]).toString() +'</span> <button class="btn btn-secondary" onclick="ver_historial()"> Ver </button><ul class="list-group" id= "lista_historial" style="display: None;">'
+            z = '</ul></div>'
+            $('.modal-body').append(a + b + c+ items_lista[0] + d + e+ f +g + h + v + k + y + items_historial[0] +z)
 
             for( i = 0 ; i < resp.length ; i++ ){
                 //console.log(resp[i][2])//items retirados
@@ -91,11 +95,9 @@ function ver_bol_fact(interno,tipo_doc,folio,monto_total,vendedor,revisor,fecha)
             l = '<div><h4>Vendedor: '+ vendedor + '</h4><h4>Revisor: '+ revisor + '</h4></div>'
             m = ''
             if(tipo_usuario == 'porteria'){
-                console.log('usuario de prteria detectado')
+                //console.log('usuario de prteria detectado')
                 m = '<button class="btn btn-secondary" onclick=guardar_cambios() >Guardar Cambios</button>'
-            }
-
-                
+            }  
             $('.modal-footer').append(l + m)
 
         }
@@ -121,14 +123,15 @@ function ver_guia(interno,tipo_doc,folio,monto_total,vendedor){
         url: "/obt_detalle_guia/" + interno,
         type: "POST",
         success: function(resp){
-            console.log(resp)
+            //console.log(resp)
+            respuesta = resp
             detalle = JSON.parse(resp[0])
             console.log(detalle) 
             adj = JSON.parse(resp[1])
             vinc = JSON.parse(resp[2])
             aux_fecha = obtener_fecha(resp[3]) 
             $('#left-header').append('<h4>Fecha: '+ aux_fecha +'</h4>')            
-            a = '<div class="row"><div class="col col-sm"><table class="table" id="table_info1"><thead><td>'
+            a = '<div class="row"><div class="col col-sm"><table id="table_info1"><thead><td>'
             b = 'DESCRIPCIÓN</td><td>CANTIDAD</td><td>CANTIDAD RETIRADA</td></thead></table></div></div>'
 
             items_lista = ''
@@ -169,8 +172,10 @@ function ver_guia(interno,tipo_doc,folio,monto_total,vendedor){
 
             h = '<div class="text-center">Vinculos <span class="badge badge-info">'+nro_vinc.toString()+'</span> <button class="btn btn-secondary" onclick="ver_vinculos()"> Ver </button><ul class="list-group" id= "lista_vinculos" style="display: None;">'
             k =  '</ul></div>'
-
-            $('.modal-body').append(a + b + c + items_lista + d + e+ f +g + h + i + k)
+            items_historial = buscar_historial('GUIA',folio)
+            y = '<div >Historial de retiros <span class="badge badge-info">'+(items_historial[1]).toString() +'</span> <button class="btn btn-secondary" onclick="ver_historial()"> Ver </button><ul class="list-group" id= "lista_historial" style="display: None;">'
+            z = '</ul></div>'
+            $('.modal-body').append(a + b + c + items_lista + d + e+ f +g + h + i + k + y + items_historial[0] + z)
 
             cantidades = detalle.cantidades
             descripciones = detalle.descripciones
@@ -238,45 +243,49 @@ function visualizar_vinc_ordenes(detalle){
         cadena = cadena +  '<a href="/documentos/ordenes/'+ aux.toLowerCase() +'/'+(orden.folio).toString() +'"  class="myButton2" >'+ aux + ' '+(orden.folio).toString() +'</a>'
     }
     cadena = cadena + '</li>'
-    console.log(cadena)
+    //console.log(cadena)
     return cadena
 }
 
 function buscar_adj(tipo,folio){
-    //console.log('buscando adjuntos ...')
+    console.log('buscando adjuntos ...')
     let found = []
     if(tipo== "BOLETA"){
         found = lista_bol_adj.find(element => element[0] == folio )
     }
     else if(tipo=="FACTURA"){
          found = lista_fact_adj.find(element => element[0] == folio )
-        }
-    console.log(found)
+    }
+
     items_lista = ""
     nro_adj = 0
     if(found[1] != null){
-        console.log('tiene adjuntos')
         lista = found[1]
         for(let i = 0 ; i < lista.length ; i++){
             items_lista = items_lista + '<a href="/descargar/'+lista[i]+'">'+'<button type="button" class="list-group-item list-group-item-action">'+ lista[i] + '</button></a>'
             nro_adj = nro_adj + 1
-        }
     }
+    }else{
+        console.log('Adjunto no encontrado')
+    }    
     return [items_lista, nro_adj ]
 }
 
 function buscar_vinc(tipo,folio){
-    //console.log('buscando vinculos...')
+    console.log('buscando vinculos...')
     let found2 = []
     if(tipo== "BOLETA"){
         found2 = lista_bol_vinc.find(element => element[0] == folio )
         
-        console.log(found2)
     }
     else if(tipo=="FACTURA"){
          found2 = lista_fact_vinc.find(element => element[0] == folio )
-         console.log(found2)
         }
+    if(found2 != null){
+        console.log(found2)
+    }else{
+        console.log('vinculos no encontrados')
+    }
     return found2
 }
 function aumentar(fila,max){
@@ -323,15 +332,29 @@ function guardar_cambios(){ //ACTUALIZAR BOLETA O FACTURA
     estado_retiro = 'NO RETIRADO'
     total_retirada = 0
     total_comprada = 0
+    total_ret_anterior = 0
     interno = respuesta[0][4]
+
+    l_descripciones = []
+    l_retirado = []
+    l_ret_anterior = []
+    
     for (var i = 1, row; row = tabla.rows[i]; i++) {
         item = []
         comprada = $('#item_max_'+ i.toString()).text()
         retirada = $('#item_ret_'+ i.toString()).val()
-        console.log("Fila: "+comprada + " - " + retirada)
+        ret_anterior = respuesta[i - 1][2] 
+        console.log("Fila: "+comprada + " - " + retirada + ' - anterior: ' + ret_anterior.toString() )
+        
         comprada = parseFloat(comprada)
         retirada = parseFloat(retirada)
-        
+        if(retirada > comprada){
+            estado = false
+        }
+        if(retirada < 0){
+            estado = false
+        }
+        total_ret_anterior = total_ret_anterior + ret_anterior
         total_retirada = total_retirada + retirada
         total_comprada = total_comprada + comprada
         cod = respuesta[i - 1][3]
@@ -340,11 +363,24 @@ function guardar_cambios(){ //ACTUALIZAR BOLETA O FACTURA
         item.push(cod) 
         item.push(interno)
         datos.push(item)
-        console.log(item)
+        //historial
+        l_descripciones.push(respuesta[i -1][0])
+        l_ret_anterior.push( ret_anterior )
+        l_retirado.push( parseFloat(retirada) )
+        
     }
     console.log('TOTAL COMPRADA: ' + total_comprada.toString())
-    console.log('TOTAL retirada: ' + total_retirada.toString())
-    if(total_retirada > total_comprada){
+    console.log('TOTAL retirada actual: ' + total_retirada.toString())
+    console.log('TOTAL ret ANTERIOR: ' + total_ret_anterior.toString())
+    //console.log(datos)
+    console.log(l_descripciones)
+    console.log(l_ret_anterior)
+    console.log(l_retirado)
+    if(estado == false){
+        alert('Un item supera la cantidad comprada o tiene un valor negativo')
+        console.log('Un item supera la cantidad comprada o tiene un valor negativo')
+    }
+    else if(total_retirada > total_comprada){
         estado = false //no puede modificar el documento
         alert('No puede retirar mas de lo comprado')
         console.log('no puede retirar mas de lo comprado')
@@ -354,10 +390,11 @@ function guardar_cambios(){ //ACTUALIZAR BOLETA O FACTURA
         alert('No puede retirar cantidades negativas')
         console.log('No puede retirar menos CANTIDADES NEGATIVAS')
     }
-    else if( total_retirada == 0)
-    {   
-        estado_retiro = 'NO RETIRADO'
-        console.log("NO RETIRO NADA, DETECTADO")
+    
+    else if(total_ret_anterior == total_retirada){
+        estado = false //sin cambios
+        alert('No se detectaron cambios.')
+        console.log("NO RETIRO NADA, DETECTADO , retiro anterior = retiro actual")
     }
     else if( total_retirada > 0 && total_retirada < total_comprada){
         estado_retiro = 'INCOMPLETO'
@@ -374,6 +411,10 @@ function guardar_cambios(){ //ACTUALIZAR BOLETA O FACTURA
         new_dato.push(estado_retiro)
         new_dato.push(datos)
         new_dato.push(interno)
+        //historial
+        new_dato.push(l_descripciones)
+        new_dato.push(l_ret_anterior)
+        new_dato.push(l_retirado)
         console.log(new_dato)
         
         $.ajax({
@@ -407,42 +448,72 @@ function guardar_cambios(){ //ACTUALIZAR BOLETA O FACTURA
 
 function guardar_cambios_2(interno){//ACTUALIZAR GUIA
     console.log("guardar 2")
+    console.log(detalle)
     var tabla = document.getElementById('table_info1')
-    datos = []
-    estado = true
+    estado = true // checkea si se actualiza el documento o no.
     estado_retiro = 'NO RETIRADO'
     total_retirada = 0
     total_comprada = 0
-
-    retirados = []
+    total_ret_anterior = 0
+    
+    l_descripciones = []
+    l_retirado = []
+    l_ret_anterior = []
+    
     for (var i = 1, row; row = tabla.rows[i]; i++) {
         item = []
         comprada = $('#item_max_'+ i.toString()).text()
         retirada = $('#item_ret_'+ i.toString()).val()
-        console.log("Fila: "+comprada + " - " + retirada)
+        ret_anterior = detalle.retirado[i-1]
+        console.log("Fila: "+comprada + " - " + retirada + ' - anterior: ' + ret_anterior.toString() )
         
         comprada = parseFloat(comprada)
         retirada = parseFloat(retirada)
-        
+        if(retirada > comprada){
+            estado = false
+        }
+        if(retirada < 0){
+            estado = false
+        }
+        total_ret_anterior = total_ret_anterior + ret_anterior
         total_retirada = total_retirada + retirada
         total_comprada = total_comprada + comprada
+    
         
-        retirados.push(retirada)
+    
+        //historial
+        l_descripciones.push(detalle.descripciones[i-1])
+        l_ret_anterior.push( ret_anterior )
+        l_retirado.push( parseFloat(retirada) )
         
     }
-    if(total_retirada > total_comprada){
+    console.log('TOTAL COMPRADA: ' + total_comprada.toString())
+    console.log('TOTAL retirada actual: ' + total_retirada.toString())
+    console.log('TOTAL ret ANTERIOR: ' + total_ret_anterior.toString())
+    //console.log(datos)
+    console.log(l_descripciones)
+    console.log(l_ret_anterior)
+    console.log(l_retirado)
+    
+    if(estado == false){
+        alert('Un item supera la cantidad comprada o tiene un valor negativo')
+        console.log('Un item supera la cantidad comprada o tiene un valor negativo')
+    }
+    else if(total_retirada > total_comprada){
         estado = false //no puede modificar el documento
-        alert('Algun item, supero la cantidad comprada.')
+        alert('No puede retirar mas de lo comprado')
+        console.log('no puede retirar mas de lo comprado')
     }
     else if(total_retirada < 0 ){
         estado = false //no puede modificar el documento
         alert('No puede retirar cantidades negativas')
         console.log('No puede retirar menos CANTIDADES NEGATIVAS')
     }
-    else if( total_retirada == 0)
-    {   
-        estado_retiro = 'NO RETIRADO'
-        console.log("NO RETIRO NADA, DETECTADO")
+    
+    else if(total_ret_anterior == total_retirada){
+        estado = false //sin cambios
+        alert('No se detectaron cambios.')
+        console.log("NO RETIRO NADA, DETECTADO , retiro anterior = retiro actual")
     }
     else if( total_retirada > 0 && total_retirada < total_comprada){
         estado_retiro = 'INCOMPLETO'
@@ -452,13 +523,15 @@ function guardar_cambios_2(interno){//ACTUALIZAR GUIA
         estado_retiro = 'COMPLETO'
         console.log('Retirado completamente detectado')
     }
-    console.log(retirados)
-
     if(estado){
         new_dato = []
         new_dato.push(estado_retiro)
-        new_dato.push(retirados)
+        new_dato.push(l_retirado)
         new_dato.push(interno)
+        //historial
+        new_dato.push(l_descripciones)
+        new_dato.push(l_ret_anterior)
+        new_dato.push(l_retirado)
         console.log(new_dato)
         $.ajax({
             url: "/actualizar/guia/item",
@@ -476,7 +549,7 @@ function guardar_cambios_2(interno){//ACTUALIZAR GUIA
                     nueva_fecha = $("#fecha_docs").val()
                     cargar_body(nueva_fecha)
                 }else{
-                    console-log(resp.message)
+                    console.log(resp.message)
                     $('#modal_info').modal('hide')// SE OCULTA EL MODAL
                     $('#mensaje').empty()
                     tipo_alert = 'warning'
@@ -532,6 +605,67 @@ function adjuntar(folio,tipo_doc,interno){
     
     
 }
+function buscar_historial(tipo,folio){
+    let found3 = []
+    console.log('buscando historial...')
+    if(tipo== "BOLETA"){
+        found3 = bol_historial.find(element => element[0] == folio )
+    }
+    else if(tipo=="FACTURA"){
+         found3 = fact_historial.find(element => element[0] == folio )
+        }
+    else if(tipo =='GUIA'){
+    
+        if(respuesta[4] !=null){
+            x_historial = JSON.parse(respuesta[4])
+            found3 = [100 , x_historial]
+        }else{
+            found3 = null
+        }
+        
+    }
+
+    items_historial = ""
+    nro_cambios = 0
+    if(found3 != null){
+        console.log(found3)
+        lista = found3[1]
+        console.log(lista)
+        console.log(lista.lista_historial)
+        for(let i = 0; i< lista.lista_historial.length ; i ++){
+            historial = JSON.parse(lista.lista_historial[i])
+            console.log(historial)
+            console.log(historial.revisor)
+            console.log(historial.fecha)
+            
+            h1 = '<li><button class="ver_cambio" onclick="ver_det_historial('+i.toString()+')">Fecha: '+ historial.fecha + ' | Revisor: '+ historial.revisor+'</button>'
+            h2 = '<table style="display:None" id = "detalle_'+ i.toString() +'" class="tab_h"><thead><tr><th class="th_h">Descripcion</th><th class="th_h">Antes</th><th class="th_h">Despues</th></tr></thead><tbody>'
+            h3 = ""
+            for(let j = 0; j < historial.descripciones.length ; j ++){
+                h3 = h3 + '<tr><td class="td_h">'+ historial.descripciones[j] +'</td><td class="td_h">'+ historial.antes[j].toString() + '</td><td class="td_h">'+ historial.despues[j].toString() +'</td></tr>'
+            }
+            
+            h4 = '</tbody></table></li>'
+            
+            items_historial = items_historial + h1 + h2 + h3 + h4
+            nro_cambios = nro_cambios + 1
+        }
+
+    }else{
+        console.log('HISTORIAL NO ENCONTRADO')
+    }
+    return [items_historial,nro_cambios]
+    /*
+    if(found[1] != null){
+        console.log('tiene historial')
+        lista = found[1]
+        for(let i = 0 ; i < lista.length ; i++){
+            items_lista = items_lista + '<a href="/descargar/'+lista[i]+'">'+'<button type="button" class="list-group-item list-group-item-action">'+ lista[i] + '</button></a>'
+            nro_adj = nro_adj + 1
+        }
+    }
+    return [items_lista, nro_adj ]*/
+}
 
 function ver_adjuntos(){
     var x = document.getElementById("lista_adjuntos")
@@ -544,6 +678,22 @@ function ver_adjuntos(){
 
 function ver_vinculos(){
     var x = document.getElementById("lista_vinculos")
+    if (x.style.display === "none") {
+        x.style.display = "block";
+    } else {
+        x.style.display = "none";
+    }
+}
+function ver_historial(){
+    var x = document.getElementById("lista_historial")
+    if (x.style.display === "none") {
+        x.style.display = "block";
+    } else {
+        x.style.display = "none";
+    }
+}
+function ver_det_historial(id){
+    var x = document.getElementById("detalle_"+ id.toString())
     if (x.style.display === "none") {
         x.style.display = "block";
     } else {
