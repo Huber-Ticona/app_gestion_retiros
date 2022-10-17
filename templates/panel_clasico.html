@@ -22,18 +22,7 @@
         </div>
         <button class="btn btn-primary" onclick= ver_simbologia()>Ver simbologia</button>
         
-        <div class="simbologia" id="simb" style="display: none;">
-            <ul class="list-group">
-                <li class="list-group-item"><span class='circle_red'></span><p>: Asociada a una nota de credito</p></li>
-                <li class="list-group-item"><span class='circle_green'></span><p>: Asociada a orden de trabajo.</p></li>
-                <li class="list-group-item"><span class='circle_yellow'></span><p>: Asociada a guia.</p></li>
-                <li class="list-group-item"><span class='circle_brown'></span><p>: Despacho a domicilio.</p></li>
-                <li class="list-group-item"><span class='circle_blue'></span><p>: Guia con  vinculo a boleta o factura.</p></li>
-                <li class="list-group-item"><button class="boton_v1" id="btn_simbologia" onclick="alert('hola')"></button><span style="display: inline-block;"><p> : Documento retirado completamente.</p></span></li>
-                <li class="list-group-item"><button class="boton_v1" id="btn_simbologia2" onclick="alert('hola')"></button><span style="display: inline-block;"><p> : Documento retirado Parcial (Incompleto).</p></span></li>
-                
-            </ul>
-        </div>
+        
 
         <div id="my_div">
         </div>
@@ -59,7 +48,33 @@
 
         </script>
     </div>
-
+        <div class="simbologia" id="simb" style="display: none;">
+            <div class="row">
+                <div class="col col-sm-6">
+                    <div><button class="boton_v1" id="btn_simbologia" onclick="alert('hola')"></button><span style="display: inline-block;"><p>: Documento retirado.</p></span></div>
+                    <div><button class="boton_v1" id="btn_simbologia2" onclick="alert('hola')"></button><span style="display: inline-block;"><p>: Documento retirado Parcial.</p></span></div>
+                    <div><button class="boton_v1" id="btn_simbologia3" onclick="alert('hola')"></button><span style="display: inline-block;"><p>: Documento NO Retirado.</p></span></div>
+                
+                </div>
+                <div class="col col-sm-6">
+                    <div><span class='circle_credito'></span><p>: Asociada a una nota de credito</p></div>
+                    <div><span class='circle_orden'></span><p>: Asociada a orden de trabajo.</p></div>
+                    <div><span class='circle_guia'></span><p>: Asociada a guia.</p></div>
+                    <div><span class='circle_brown'></span><p>: Despacho a domicilio.</p></div>
+                    <div><span class='circle_doc'></span><p>: Guia con  vinculo a boleta o factura.</p></div>
+                </div>
+            </div>
+            <!--
+            <ul class="list-group">
+                <li class="list-group-item"><span class='circle_credito'></span><p>: Asociada a una nota de credito</p></li>
+                <li class="list-group-item"><span class='circle_orden'></span><p>: Asociada a orden de trabajo.</p></li>
+                <li class="list-group-item"><span class='circle_guia'></span><p>: Asociada a guia.</p></li>
+                <li class="list-group-item"><span class='circle_brown'></span><p>: Despacho a domicilio.</p></li>
+                <li class="list-group-item"><span class='circle_doc'></span><p>: Guia con  vinculo a boleta o factura.</p></li>
+                <li class="list-group-item"><button class="boton_v1" id="btn_simbologia" onclick="alert('hola')"></button><span style="display: inline-block;"><p> : Documento retirado completamente.</p></span></li>
+                <li class="list-group-item"><button class="boton_v1" id="btn_simbologia2" onclick="alert('hola')"></button><span style="display: inline-block;"><p> : Documento retirado Parcial (Incompleto).</p></span></li>
+            </ul>-->
+        </div>
     <!--<table><thead><tr><th>Descripcion</th><th>Antes</th><th>Despues</th></tr></thead><tbody><tr><td>msd</td><td>100</td><td>200</td></tr></tbody></table>
     -->
     <!-- The Modal -->

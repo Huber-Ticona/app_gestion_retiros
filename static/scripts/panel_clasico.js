@@ -96,7 +96,7 @@ function ver_bol_fact(interno,tipo_doc,folio,monto_total,vendedor,revisor,fecha)
             m = ''
             if(tipo_usuario == 'porteria'){
                 //console.log('usuario de prteria detectado')
-                m = '<button class="btn btn-secondary" onclick=guardar_cambios() >Guardar Cambios</button>'
+                m = '<button class="btn btn-secondary" onclick=guardar_cambios("'+ tipo_doc+'","'+ folio +'") >Guardar Cambios</button>'
             }  
             $('.modal-footer').append(l + m)
 
@@ -325,7 +325,7 @@ function dar_baja(){
     console.log(lista_fact_adj) */ 
 
 }
-function guardar_cambios(){ //ACTUALIZAR BOLETA O FACTURA
+function guardar_cambios(tipo_doc,folio){ //ACTUALIZAR BOLETA O FACTURA
     var tabla = document.getElementById('table_info1')
     datos = []
     estado = true // checkea si se actualiza el documento o no.
@@ -343,11 +343,21 @@ function guardar_cambios(){ //ACTUALIZAR BOLETA O FACTURA
         item = []
         comprada = $('#item_max_'+ i.toString()).text()
         retirada = $('#item_ret_'+ i.toString()).val()
-        ret_anterior = respuesta[i - 1][2] 
-        console.log("Fila: "+comprada + " - " + retirada + ' - anterior: ' + ret_anterior.toString() )
+        
+        ret_anterior = respuesta[i - 1][2]
+        if(ret_anterior == null){
+            ret_anterior = 0
+        }
+        if(retirada == ''){
+            console.log('item vacio')
+            estado = false
+            retirada = 0
+        }
+        console.log("Fila: "+comprada + " - " + retirada + ' - anterior: ' + ret_anterior.toString())
         
         comprada = parseFloat(comprada)
         retirada = parseFloat(retirada)
+        
         if(retirada > comprada){
             estado = false
         }
@@ -376,8 +386,9 @@ function guardar_cambios(){ //ACTUALIZAR BOLETA O FACTURA
     console.log(l_descripciones)
     console.log(l_ret_anterior)
     console.log(l_retirado)
+
     if(estado == false){
-        alert('Un item supera la cantidad comprada o tiene un valor negativo')
+        alert('Un item supera la cantidad comprada, tiene un valor negativo o un campo esta incompleto')
         console.log('Un item supera la cantidad comprada o tiene un valor negativo')
     }
     else if(total_retirada > total_comprada){
@@ -428,7 +439,7 @@ function guardar_cambios(){ //ACTUALIZAR BOLETA O FACTURA
                     $('#modal_info').modal('hide')// SE OCULTA EL MODAL
                     $('#mensaje').empty()
                     tipo_alert = 'success'
-                    $('#mensaje').append('<div class="alert alert-'+tipo_alert+'"><button type="button" class="close" data-dismiss="alert">&times;</button>'+resp.message+'</div>')
+                    $('#mensaje').append('<div class="alert alert-'+tipo_alert+'"><button type="button" class="close" data-dismiss="alert">&times;</button>'+tipo_doc +' '+folio+': '+resp.message+'</div>')
 
                     nueva_fecha = $("#fecha_docs").val()
                     cargar_body(nueva_fecha)
@@ -437,7 +448,7 @@ function guardar_cambios(){ //ACTUALIZAR BOLETA O FACTURA
                     $('#modal_info').modal('hide')// SE OCULTA EL MODAL
                     $('#mensaje').empty()
                     tipo_alert = 'warning'
-                    $('#mensaje').append('<div class="alert alert-'+tipo_alert+'"><button type="button" class="close" data-dismiss="alert">&times;</button>'+resp.message+'</div>')
+                    $('#mensaje').append('<div class="alert alert-'+tipo_alert+'"><button type="button" class="close" data-dismiss="alert">&times;</button>'+tipo_doc +' '+folio+': '+resp.message+'</div>')
                 }
             }
             
@@ -464,7 +475,16 @@ function guardar_cambios_2(interno){//ACTUALIZAR GUIA
         item = []
         comprada = $('#item_max_'+ i.toString()).text()
         retirada = $('#item_ret_'+ i.toString()).val()
+        if(retirada == ''){
+            console.log('item vacio')
+            estado = false
+            retirada = 0
+        }
+
         ret_anterior = detalle.retirado[i-1]
+        if(ret_anterior == null){
+            ret_anterior = 0
+        }
         console.log("Fila: "+comprada + " - " + retirada + ' - anterior: ' + ret_anterior.toString() )
         
         comprada = parseFloat(comprada)
@@ -642,7 +662,18 @@ function buscar_historial(tipo,folio){
             h2 = '<table style="display:None" id = "detalle_'+ i.toString() +'" class="tab_h"><thead><tr><th class="th_h">Descripcion</th><th class="th_h">Antes</th><th class="th_h">Despues</th></tr></thead><tbody>'
             h3 = ""
             for(let j = 0; j < historial.descripciones.length ; j ++){
-                h3 = h3 + '<tr><td class="td_h">'+ historial.descripciones[j] +'</td><td class="td_h">'+ historial.antes[j].toString() + '</td><td class="td_h">'+ historial.despues[j].toString() +'</td></tr>'
+                //BUG nro1: si el input esta vacio al guardar, se guardan valores null, que luego al leer causa error de tipo.
+                let antes = historial.antes[j]
+                let despues = historial.despues[j]
+
+                if(antes == null) {
+                    antes = 'None'
+                }
+                if(despues == null){
+                    despues = 'None'
+                }
+                h3 = h3 + '<tr><td class="td_h">'+ historial.descripciones[j] +'</td><td class="td_h">'+ antes.toString() + '</td><td class="td_h">'+ despues.toString() +'</td></tr>'
+               
             }
             
             h4 = '</tbody></table></li>'

@@ -27,6 +27,9 @@ h1{
 .box-pendientes{
     display: block;
 }
+.box-flujo-diario{
+  display: block;
+}
 
 
 .boton_v1{
@@ -37,6 +40,7 @@ h1{
 	cursor: pointer;
 	font-size: 18px;
 	font-family: 'Times New Roman', Times, serif;
+  background:  linear-gradient(to top, #00ff00 0%, #99ff33 100%);
 	letter-spacing: 5px;
 	border: 2px solid black;
 	box-shadow: 0px 0px 0px rgba(0,0,0,0.4);
@@ -125,7 +129,7 @@ h1{
 .myinput{
     width: 40px;
   }
-.circle_red{
+.circle_credito{
   height: 11px;
   width: 11px;
   background: linear-gradient(to bottom, #ff0000 0%, #333300 100%);
@@ -135,7 +139,7 @@ h1{
   margin-left: 5px;
 
 }
-.circle_green{  
+.circle_orden{  
   height: 11px;
   width: 11px;
   background: linear-gradient(to bottom, #00ff00 0%, #003300 100%);
@@ -144,7 +148,7 @@ h1{
   margin-right: 5px;
   margin-left: 5px;
 }
-.circle_yellow{
+.circle_guia{
   height: 11px;
   width: 11px;
   background: linear-gradient(to bottom, #ffff00 0%, #996600 100%);
@@ -153,7 +157,7 @@ h1{
   margin-right: 5px;
   margin-left: 5px;
 }
-.circle_blue{
+.circle_doc{
   height: 11px;
   width: 11px;
   background: linear-gradient(to bottom, #0000ff 0%, #000066  100%);
@@ -197,3 +201,45 @@ h1{
 	top:1px;
 }
 
+/* v2.2.1 FLUJO DIARIO 
+#body_panel_2{
+  border: 2px solid red;
+}*/
+.flujo-box-retirados-boletas{
+  border: 1px solid green;
+}
+.flujo-box-retirados-facturas{
+  border: 1px solid red;
+}
+.flujo-box-retirados-guias{
+  border: 1px solid aqua;
+}
+
+#flujo-retirado{
+  width: 50%;
+}
+
+.btn-flujo{
+  border: 1px solid black;
+  width: 75px;
+	height: 40px;
+  margin: 5px 5px ;
+	cursor: pointer;
+	font-size: 15px;
+  background:  linear-gradient(to top, #00ff00 0%, #99ff33 100%);
+	font-family: 'Times New Roman', Times, serif;
+	letter-spacing: 2px;
+}
+.box-parametros-atrasados{
+  justify-content: center;
+}
+
+.bol-despacho-atrasado{
+  border: 1px solid red;
+}
+.fact-despacho-atrasado{
+  border: 1px solid purple;
+}
+.guia-despacho-atrasado{
+  border: 1px solid yellow;
+}

@@ -720,8 +720,62 @@ def obt_pendientes(fecha1 = None , fecha2 = None):
 
     finally:
         miConexion.close() 
+@app.route('/estadisticas/flujo-diario/<string:fecha1>/<string:fecha2>')
+def obt_flujo_diario(fecha1 = None, fecha2 = None):
+
+    inicio = str(fecha1) + ' 00:00'
+    fin = str(fecha2) + ' 23:59'
+    ventas = []
+    guias = []
+    miConexion = pymysql.connect( host='localhost',
+        user= 'root', passwd='', db='madenco' )
+    try:
+        with miConexion.cursor() as cursor:
+            sql1= "SELECT * from nota_venta WHERE fecha between %s and %s "
+            cursor.execute(sql1, ( inicio, fin )) 
+            ventas = cursor.fetchall()
+
+            sql3 = "SELECT * from guia where fecha between %s and %s "
+            cursor.execute(sql3 , ( inicio , fin ))
+            guias = cursor.fetchall()
+
+            return jsonify(
+                ventas = ventas,
+                guias = guias
+            )
+
+
+    finally:
+        miConexion.close() 
+
+@app.route('/estadisticas/despachos-atrasados' ,methods = ['POST'])
+def despachos_atrasados():
+    ventas = []
+    guias = []
+
+    miConexion = pymysql.connect( host='localhost',
+        user= 'root', passwd='', db='madenco' )
+    try:
+        with miConexion.cursor() as cursor:
+            sql1= "SELECT * from nota_venta where estado_retiro != 'COMPLETO' AND despacho = 'SI' "
+            cursor.execute(sql1) 
+            ventas = cursor.fetchall()
+
+            sql3 = "SELECT * from guia where despacho is not null and despacho !='NO' "
+            cursor.execute(sql3 )
+            guias = cursor.fetchall()
+
+            return jsonify(
+                ventas = ventas,
+                guias = guias
+            )
+
+
+    finally:
+        miConexion.close() 
+
 
 if __name__ == '__main__':
     
-    app.run(host='0.0.0.0' ,port=4000, debug= True )
+    app.run(host ='0.0.0.0' , port = 5003 , debug= True )
 

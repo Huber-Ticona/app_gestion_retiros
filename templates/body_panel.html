@@ -8,6 +8,10 @@
 
         var bol_historial = []
         var fact_historial = []
+
+        var completo_color = 'linear-gradient(to bottom, #ff0000 0%, #ff6600 100%)'
+        var incompleto_color = 'linear-gradient(to bottom, #ffff00 0%, #ffff66 100%)'
+
     </script>
     <div class="col col-sm-4">
         <p>BOLETAS <span class="badge badge-pill badge-primary">{{boletas|length}}</span></p>
@@ -21,11 +25,11 @@
                     {% if item[8] %}
                         {% if item[8] == "COMPLETO" %}
                         <script>
-                            document.getElementById("btn_{{item[4]}}").style.background = 'linear-gradient(to bottom, #33ccff 0%, #ff99cc 100%)'
+                            document.getElementById("btn_{{item[4]}}").style.background = completo_color
                         </script>
                         {% elif item[8] == "INCOMPLETO" %}
                         <script>
-                            document.getElementById("btn_{{item[4]}}").style.background = 'linear-gradient(to bottom, #99ff66 0%, #ffff99 100%)'
+                            document.getElementById("btn_{{item[4]}}").style.background = incompleto_color
                         </script>
                         {% endif %}
                     {% else %}
@@ -50,18 +54,18 @@
                             lista_bol_vinc.push(bol_vinc)
                             if(vinc.ordenes){
                                 //console.log('BOLETA: vinculo de orden de trabajo')
-                                $('#{{item[4]}}').append("<span class='circle_green'></span>")
+                                $('#{{item[4]}}').append("<span class='circle_orden'></span>")
                                 /*for(i = 0; i< vinc.ordenes.length ; i ++){
                                     console.log(vinc.ordenes[i].tipo + ' - ' + vinc.ordenes[i].folio)
                                 }*/
                             }
                             if(vinc.guias){
                                 //console.log("BOLETA: vinculo guia encontrado")
-                                $('#{{item[4]}}').append("<span class='circle_yellow'></span>")
+                                $('#{{item[4]}}').append("<span class='circle_guia'></span>")
                             }
                             if(vinc.creditos){
                                 //console.log("BOLETA: vinculo credito encontrado")                                      
-                                $('#{{item[4]}}').append("<span class='circle_red'></span>")
+                                $('#{{item[4]}}').append("<span class='circle_credito'></span>")
                             }
 
                             //document.getElementById("btn_span_{{item[4]}}").style.marginTop = "-10px";  
@@ -150,11 +154,11 @@
                         {% if item[8] %}
                                 {% if item[8] == "COMPLETO" %}
                                 <script>
-                                    document.getElementById("btn_{{item[2]}}").style.background = 'linear-gradient(to bottom, #33ccff 0%, #ff99cc 100%)'
+                                    document.getElementById("btn_{{item[2]}}").style.background = completo_color
                                 </script>
                                 {% elif item[8] == "INCOMPLETO" %}
                                 <script>
-                                    document.getElementById("btn_{{item[2]}}").style.background = 'linear-gradient(to bottom, #99ff66 0%, #ffff99 100%)'
+                                    document.getElementById("btn_{{item[2]}}").style.background = incompleto_color
                                 </script>
                                 {% endif %}
                         {% else %}
@@ -165,10 +169,12 @@
                     </span>
                 </div>
                 <!-- SE ANALIZA LOS VINCULOS ASOCIADOS -->
-                {% if item[6] != None %}
-                {% set vinculos = item[6]|safe %}
                 <div class="badge_box" id="{{item[2]}}">
                 </div>
+
+                {% if item[6] != None %}
+                {% set vinculos = item[6]|safe %}
+                
                 <script>
                     vinc = {{ vinculos }}
                     //console.log(vinc)
@@ -178,18 +184,18 @@
                     lista_fact_vinc.push(fact_vinc)
                     if (vinc.ordenes) {
                         //console.log('FACTURA: vinculo de orden de trabajo')
-                        $('#{{item[2]}}').append("<span class='circle_green'></span>")
+                        $('#{{item[2]}}').append("<span class='circle_orden'></span>")
                         /*for(i = 0; i< vinc.ordenes.length ; i ++){
                             console.log(vinc.ordenes[i].tipo + ' - ' + vinc.ordenes[i].folio)
                         }*/
                     }
                     if (vinc.guias) {
                         //console.log("FACTURA: vinculo guia encontrado")
-                        $('#{{item[2]}}').append("<span class='circle_yellow'></span>")
+                        $('#{{item[2]}}').append("<span class='circle_guia'></span>")
                     }
                     if (vinc.creditos) {
                         //console.log("FACTURA: vinculo credito encontrado")
-                        $('#{{item[2]}}').append("<span class='circle_red'></span>")
+                        $('#{{item[2]}}').append("<span class='circle_credito'></span>")
                     }
                 </script>
                 {% endif%}
@@ -217,7 +223,7 @@
                 <script>
                     desp = "{{ item[10]|safe }}"
                     if(desp == "SI"){
-                        $('#{{item[0]}}').append("<span class='circle_brown'></span>")
+                        $('#{{item[2]}}').append("<span class='circle_brown'></span>")
                     }
                 </script>
                 {% endif %}
@@ -255,13 +261,13 @@
                                 {% if item[4] %}
                                     {% if item[4] == '"COMPLETO"' %}
                                     <script>
-                                        console.log("completo")
-                                        document.getElementById("btn_{{item[0]}}").style.background = 'linear-gradient(to bottom, #33ccff 0%, #ff99cc 100%)'
+                                        //console.log("completo")
+                                        document.getElementById("btn_{{item[0]}}").style.background = completo_color
                                     </script>
                                     {% elif item[4] == '"INCOMPLETO"' %}
                                     <script>
                                         console.log("incompleto")
-                                        document.getElementById("btn_{{item[0]}}").style.background = 'linear-gradient(to bottom, #99ff66 0%, #ffff99 100%)'                                        
+                                        document.getElementById("btn_{{item[0]}}").style.background = incompleto_color                                     
                                     </script>
                                     {% endif %}
                                 {% else %}
@@ -273,16 +279,17 @@
                             </span>                   
                         </div>
                     <!-- SE ANALIZA LOS VINCULOS ASOCIADOS: implementado al visualizar el modal -->
-                    {% if item[5] != None %}
-                    {% set vinculos = item[5]|safe %}
                     <div class="badge_box" id="{{item[0]}}">
                     </div>
+                    {% if item[5] != None %}
+                    {% set vinculos = item[5]|safe %}
+                    
                     <script>
                         vinc = {{ vinculos }}
                         
                         if (vinc.ordenes) {
                             //console.log('GUIA: vinculo de orden de trabajo')
-                            $('#{{item[0]}}').append("<span class='circle_green'></span>")
+                            $('#{{item[0]}}').append("<span class='circle_orden'></span>")
                             /*for(i = 0; i< vinc.ordenes.length ; i ++){
                                 console.log(vinc.ordenes[i].tipo + ' - ' + vinc.ordenes[i].folio)
                             }*/
@@ -291,20 +298,17 @@
                     {% endif %}
                     
                     {% if item[6] != None %}
-                    <div class="badge_box" id="{{item[0]}}">
-                    </div>
                     <script>
                         vinc = {{ item[6]|safe }}
                         //console.log(vinc)
                         if (vinc == "BOLETA" || vinc == 'FACTURA') {
-                            $('#{{item[0]}}').append("<span class='circle_blue'></span>")
+                            $('#{{item[0]}}').append("<span class='circle_doc'></span>")
                         }
                     </script>
                     {% endif %}
+
                     <!-- SE ANALIZA SI ES DESPACHO A DOMICILIO -->
                     {% if item[7] != None %}
-                    <div class="badge_box" id="{{item[0]}}">
-                    </div>
                     <script>
                         desp = "{{ item[7]|safe }}"
                         if(desp == "SI"){
@@ -312,6 +316,7 @@
                         }
                     </script>
                     {% endif %}
+
                     <!-- SE ANALIZA LOS DOCUMENTOS ADJUNTOS: implementado al visualizar el modal -->
                     </button> 
                     {% endfor %}
