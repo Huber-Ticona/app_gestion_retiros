@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block encabezado %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+{% endblock %}
+
+
+{% block contenido %}
+{% for message in get_flashed_messages() %}
+<div class="alert alert-warning">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    {{ message }}
+</div>
+{% endfor %}
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <div class="formulario">
+                <p>Iniciar sesión</p>
+                <form action="{{ url_for('auth_bp.login') }}" method="POST">
+                    <div class="form-group">
+                        <input type="text" class="form-control" name="nombre_usuario" placeholder="Usuario">
+                    </div>
+
+                    <div class="form-group">
+                        <input type="password" class="form-control" name="contraseña" placeholder="Contraseña">
+                    </div>
+                    <div class="col text-center">
+                        <br>
+                        <button type="submit" class="btn btn-primary">Ingresar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
+    </div>
+
+
+</div>
+{% endblock%}

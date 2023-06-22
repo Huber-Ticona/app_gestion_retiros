@@ -5,3 +5,12 @@ dist
 Consultas_SQL.txt
 estructura_modal.txt
 server.ico
+venv
+respaldo_adjuntos
+releases
+instance
+run - copia.py
+activar_entorno.bat
+.env
+*.spec
+.gitignore
